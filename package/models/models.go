@@ -39,6 +39,14 @@ type User struct {
 	ReceiverTransactions []Transaction `gorm:"foreignkey:ReceiverUserID"`
 }
 
+type UserDTO struct {
+	ID        uint
+	CreatedAt string
+	UpdatedAt string
+	Name      string
+	Email     string
+}
+
 type Expense struct {
 	gorm.Model
 	Description  string
@@ -91,5 +99,15 @@ func (g *Group) ToDto() GroupDTO {
 		Expenses:     g.Expenses,
 		Transactions: g.Transactions,
 		Users:        strings.Join(usernames, ","),
+	}
+}
+
+func (u *User) ToDto() UserDTO {
+	return UserDTO{
+		ID:        u.ID,
+		CreatedAt: u.CreatedAt.Format(time.DateTime),
+		UpdatedAt: u.UpdatedAt.Format(time.DateTime),
+		Name:      u.Name,
+		Email:     u.Email,
 	}
 }
