@@ -1,15 +1,14 @@
-{{template "base" .}}
-{{define "title"}}{{.Name}}{{end}}
-{{define "body"}}
-<div class='group'>
-    <div class='metadata'>
+{{template "base" .}} {{define "title"}}{{.GroupByIdDto.Name}}{{end}} {{define
+"body"}} {{with .GroupByIdDto}}
+<div class="group">
+    <div class="metadata">
         <strong>{{.Name}}</strong>
     </div>
     <pre><code>{{.Description}}</code></pre>
     <pre><code>{{.Users}}</code></pre>
-    <div class='metadata'>
+    <div class="metadata">
         <time>Created: {{.CreatedAt}}</time>
         <time>Last updated: {{.UpdatedAt}}</time>
     </div>
 </div>
-{{end}}
+{{end}} {{end}}
