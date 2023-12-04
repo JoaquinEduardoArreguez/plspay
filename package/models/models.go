@@ -18,8 +18,9 @@ type Group struct {
 }
 
 type GroupDTO struct {
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           uint
+	CreatedAt    string
+	UpdatedAt    string
 	Name         string
 	Description  string
 	Users        string
@@ -81,9 +82,12 @@ func (g *Group) ToDto() GroupDTO {
 		usernames = append(usernames, user.Name)
 	}
 
+	//theTime.Format("2006-1-2 15:4:5")
+
 	return GroupDTO{
-		CreatedAt:    g.CreatedAt,
-		UpdatedAt:    g.UpdatedAt,
+		ID:           g.ID,
+		CreatedAt:    g.CreatedAt.Format(time.DateTime),
+		UpdatedAt:    g.UpdatedAt.Format(time.DateTime),
 		Name:         g.Name,
 		Description:  g.Description,
 		Expenses:     g.Expenses,

@@ -16,6 +16,24 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get groups to display
+	var groups []models.Group
+	dbResponse := app.groupRepository.DB.Preload("Users").Find(&groups)
+
+	if dbResponse.Error != nil {
+		app.serverError(w, dbResponse.Error)
+		return
+	}
+
+	// Convert them to DTOs
+	var groupDtos []*models.GroupDTO
+	for _, group := range groups {
+		dto := group.ToDto()
+		groupDtos = append(groupDtos, &dto)
+	}
+
+	templateData := &homeTemplateData{GroupDtos: groupDtos}
+
 	templateFilePaths := []string{
 		"./ui/html/home.page.template.html",
 		"./ui/html/base.layout.template.html",
@@ -29,7 +47,7 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templateSetExecuteError := templateSet.Execute(w, nil)
+	templateSetExecuteError := templateSet.Execute(w, templateData)
 
 	if templateSetExecuteError != nil {
 		app.serverError(w, templateSetExecuteError)
