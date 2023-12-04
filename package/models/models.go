@@ -82,8 +82,6 @@ func (g *Group) ToDto() GroupDTO {
 		usernames = append(usernames, user.Name)
 	}
 
-	//theTime.Format("2006-1-2 15:4:5")
-
 	return GroupDTO{
 		ID:           g.ID,
 		CreatedAt:    g.CreatedAt.Format(time.DateTime),
