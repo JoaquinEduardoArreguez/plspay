@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -32,28 +31,10 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 		groupDtos = append(groupDtos, &dto)
 	}
 
-	templateData := &homeTemplateData{GroupDtos: groupDtos}
+	app.render(w, r, "home.page.template.html", &templateData{
+		GroupDtos: groupDtos,
+	})
 
-	templateFilePaths := []string{
-		"./ui/html/home.page.template.html",
-		"./ui/html/base.layout.template.html",
-		"./ui/html/footer.partial.template.html",
-	}
-
-	templateSet, templateParseFilesError := template.ParseFiles(templateFilePaths...)
-
-	if templateParseFilesError != nil {
-		app.serverError(w, templateParseFilesError)
-		return
-	}
-
-	templateSetExecuteError := templateSet.Execute(w, templateData)
-
-	if templateSetExecuteError != nil {
-		app.serverError(w, templateSetExecuteError)
-	}
-
-	w.Write([]byte("PlsPay"))
 }
 
 func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
@@ -111,22 +92,9 @@ func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/show.page.template.html",
-		"./ui/html/base.layout.template.html",
-		"./ui/html/footer.partial.template.html",
-	}
+	groupDto := group.ToDto()
 
-	templateSet, templateParseFilesError := template.ParseFiles(files...)
-	if templateParseFilesError != nil {
-		app.serverError(w, templateParseFilesError)
-		return
-	}
-
-	templateSetExecuteError := templateSet.Execute(w, group.ToDto())
-	if templateSetExecuteError != nil {
-		app.serverError(w, templateSetExecuteError)
-	}
+	app.render(w, r, "show.page.template.html", &templateData{GroupByIdDto: &groupDto})
 }
 
 func (app *Application) createUser(w http.ResponseWriter, r *http.Request) {
@@ -157,7 +125,7 @@ func (app *Application) getUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := &models.User{}
-	dbResponse := app.userRepository.DB.Preload("Users").First(user, id)
+	dbResponse := app.userRepository.DB.Preload("Groups").First(user, id)
 
 	if dbResponse.Error != nil {
 		switch dbResponse.Error {

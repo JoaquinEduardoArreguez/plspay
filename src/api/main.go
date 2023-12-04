@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,7 @@ type Application struct {
 	infoLog         *log.Logger
 	groupRepository *repositories.GroupRepository
 	userRepository  *repositories.UserRepository
+	templateCache   map[string]*template.Template
 }
 
 func main() {
@@ -36,11 +38,18 @@ func main() {
 		errorLog.Fatal(initDatabaseError)
 	}
 
+	// Initialize a new template cache...
+	templateCache, err := newTemplateCache("./ui/html/")
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := &Application{
 		errorLog:        errorLog,
 		infoLog:         infoLog,
 		groupRepository: repositories.NewGroupRepository(database),
 		userRepository:  repositories.NewUserRepository(database),
+		templateCache:   templateCache,
 	}
 
 	infoLog.Printf("Starting server on '%v'", *serverAddress)
