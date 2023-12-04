@@ -7,13 +7,17 @@ import (
 	"os"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
+	"github.com/JoaquinEduardoArreguez/plspay/package/models/repositories"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
+	errorLog        *log.Logger
+	infoLog         *log.Logger
+	groupRepository *repositories.GroupRepository
+	userRepository  *repositories.UserRepository
 }
 
 func main() {
@@ -27,12 +31,17 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	_, initDatabaseError := initDatabase(*postgresDsn)
+	database, initDatabaseError := initDatabase(*postgresDsn)
 	if initDatabaseError != nil {
 		errorLog.Fatal(initDatabaseError)
 	}
 
-	app := &Application{errorLog: errorLog, infoLog: infoLog}
+	app := &Application{
+		errorLog:        errorLog,
+		infoLog:         infoLog,
+		groupRepository: repositories.NewGroupRepository(database),
+		userRepository:  repositories.NewUserRepository(database),
+	}
 
 	infoLog.Printf("Starting server on '%v'", *serverAddress)
 	server := &http.Server{Addr: *serverAddress, ErrorLog: errorLog, Handler: app.routes()}
@@ -42,7 +51,9 @@ func main() {
 }
 
 func initDatabase(dsn string) (*gorm.DB, error) {
-	database, openDatabaseError := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	database, openDatabaseError := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if openDatabaseError != nil {
 		return nil, openDatabaseError
 	}
