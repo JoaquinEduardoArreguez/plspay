@@ -5,6 +5,8 @@ build:
 	go build -o ./builds/${BINARY_NAME}.out ./src/api/*
 
 run: build
+	echo "\n\n\n\n\n"
+	clear
 	./builds/${BINARY_NAME}.out -postgresDsn=${POSTGRES_DSN}
 
 run-docker:
@@ -12,3 +14,9 @@ run-docker:
 
 stop-docker:
 	docker-compose -f docker.compose.yml down
+
+debug-build:
+	go build -o ./builds/${BINARY_NAME}.out -gcflags all=-N -l ./src/api/*
+
+debug:
+	/Users/joaquinarreguez/go/bin/dlv dap --listen=127.0.0.1:54415 --log-dest=3
