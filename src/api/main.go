@@ -38,7 +38,6 @@ func main() {
 		errorLog.Fatal(initDatabaseError)
 	}
 
-	// Initialize a new template cache...
 	templateCache, err := newTemplateCache("./ui/html/")
 	if err != nil {
 		errorLog.Fatal(err)

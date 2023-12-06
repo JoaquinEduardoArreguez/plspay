@@ -2,7 +2,7 @@ package main
 
 import "net/http"
 
-func (app *Application) routes() *http.ServeMux {
+func (app *Application) routes() http.Handler {
 	serverMux := http.NewServeMux()
 	serverMux.HandleFunc("/", app.home)
 	serverMux.HandleFunc("/groups/create", app.createGroup)
@@ -13,5 +13,5 @@ func (app *Application) routes() *http.ServeMux {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	serverMux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	return serverMux
+	return app.recoverPanic(app.logRequest(secureHeaders(serverMux)))
 }
