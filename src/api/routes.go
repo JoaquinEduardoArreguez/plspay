@@ -1,17 +1,30 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/bmizerany/pat"
+	"github.com/justinas/alice"
+)
 
 func (app *Application) routes() http.Handler {
-	serverMux := http.NewServeMux()
-	serverMux.HandleFunc("/", app.home)
-	serverMux.HandleFunc("/groups/create", app.createGroup)
-	serverMux.HandleFunc("/groups", app.getGroupById)
-	serverMux.HandleFunc("/users/create", app.createUser)
-	serverMux.HandleFunc("/users", app.getUserById)
+
+	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
+	serverMux := pat.New()
+
+	serverMux.Get("/", http.HandlerFunc(app.home))
+
+	serverMux.Get("/groups/create", http.HandlerFunc(app.createGroupForm))
+	serverMux.Post("/groups/create", http.HandlerFunc(app.createGroup))
+	serverMux.Get("/groups/:id", http.HandlerFunc(app.getGroupById))
+
+	serverMux.Get("/users/create", http.HandlerFunc(app.createUserForm))
+	serverMux.Post("/users/create", http.HandlerFunc(app.createUser))
+	serverMux.Get("/users/:id", http.HandlerFunc(app.getUserById))
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	serverMux.Handle("/static/", http.StripPrefix("/static", fileServer))
+	serverMux.Get("/static/", http.StripPrefix("/static", fileServer))
 
-	return app.recoverPanic(app.logRequest(secureHeaders(serverMux)))
+	return standardMiddleware.Then(serverMux)
 }

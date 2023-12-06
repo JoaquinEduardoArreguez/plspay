@@ -10,11 +10,6 @@ import (
 )
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		app.notFound(w)
-		return
-	}
-
 	// Get groups to display
 	var groups []models.Group
 	dbResponse := app.groupRepository.DB.Preload("Users").Find(&groups)
@@ -34,16 +29,9 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "home.page.template.html", &templateData{
 		GroupDtos: groupDtos,
 	})
-
 }
 
 func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Set("Allow", "POST")
-		app.clientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
 	// group owner (User)
 	groupOwner := &models.User{}
 	dbResponse := app.userRepository.GetByID(1, groupOwner)
@@ -72,8 +60,12 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *Application) createGroupForm(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Create group form"))
+}
+
 func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
 		return
@@ -98,12 +90,6 @@ func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) createUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Set("Allow", "POST")
-		app.clientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
 	user, errorConstructingUser := models.NewUser("Adri", "a@asd.com")
 
 	if errorConstructingUser != nil {
@@ -115,6 +101,10 @@ func (app *Application) createUser(w http.ResponseWriter, r *http.Request) {
 	if errorCreatingUser != nil {
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 	}
+}
+
+func (app *Application) createUserForm(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Create user form"))
 }
 
 func (app *Application) getUserById(w http.ResponseWriter, r *http.Request) {
