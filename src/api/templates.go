@@ -4,10 +4,12 @@ import (
 	"html/template"
 	"path/filepath"
 
+	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
 )
 
 type templateData struct {
+	Form         *forms.Form
 	GroupDtos    []*models.GroupDTO
 	GroupByIdDto *models.GroupDTO
 }

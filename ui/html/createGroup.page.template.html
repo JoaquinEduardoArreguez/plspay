@@ -1,25 +1,32 @@
-{{template "base" .}}
-{{define "title"}}Create Group{{end}}
-{{define "body"}}
+{{template "base" .}} {{define "title"}}Create Group{{end}} {{define "body"}}
 <form action="/groups/create" method="post">
-    <div>
-        <label>Name:</label>
-        <input type='text' name='name'>
-    </div>
-    <div>
-        <label>Description:</label>
-        <input type='text' name='description'>
-    </div>
-    <div>
-        <label>Owner:</label>
-        <input type="text" name='owner'>
-    </div>
-    <div>
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date">
-    </div>
-    <div>
-        <input type='submit' value='Create Group'>
-    </div>
+  {{with .Form}}
+  <div>
+    <label>Name:</label>
+    {{with .Errors.Get "name"}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="text" name="name" value='{{.Get "name"}}' />
+  </div>
+
+  <div>
+    <label>Owner:</label>
+    {{with .Errors.Get "owner"}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="text" name="owner" value='{{.Get "owner"}}' />
+  </div>
+
+  <div>
+    <label for="date">Date:</label>
+    {{with .Errors.Get "date"}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="date" id="date" name="date" value='{{.Get "date"}}' />
+  </div>
+
+  <div>
+    <input type="submit" value="Create Group" />
+  </div>
 </form>
-{{end}}
+{{end}} {{end}}

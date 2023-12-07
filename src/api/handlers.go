@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
 	"gorm.io/gorm"
 )
@@ -34,17 +35,31 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
-
 	errorParsingForm := r.ParseForm()
 	if errorParsingForm != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	name := r.PostForm.Get("name")
-	description := r.PostForm.Get("description")
-	owner := r.PostForm.Get("owner")
-	date, _ := time.Parse("2006-01-02", r.PostForm.Get("date"))
+	// Validate input
+	availableUserNames, getUserNamesError := app.userRepository.GetUserNames()
+	if getUserNamesError != nil {
+		app.serverError(w, getUserNamesError)
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("name", "owner", "date")
+	form.MaxLength("name", 20)
+	form.PermittedValues("owner", availableUserNames...)
+
+	if !form.Valid() {
+		app.render(w, r, "createGroup.page.template.html", &templateData{Form: form})
+		return
+	}
+
+	name := form.Get("name")
+	owner := form.Get("owner")
+	date, _ := time.Parse("2006-01-02", form.Get("date"))
 
 	// group owner (User)
 	groupOwner := &models.User{}
@@ -61,7 +76,7 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Group
-	group, errorConstructingGroup := models.NewGroup(groupOwner, name, description, date)
+	group, errorConstructingGroup := models.NewGroup(groupOwner, name, date)
 
 	if errorConstructingGroup != nil {
 		app.errorLog.Fatal(errorConstructingGroup)
@@ -70,14 +85,16 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	insertGroupResponse := app.groupRepository.Create(group) // error ignored
 
 	if insertGroupResponse.Error != nil {
-		http.Error(w, "Error creating group", http.StatusInternalServerError)
+		app.serverError(w, insertGroupResponse.Error)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/groups/%d", group.ID), http.StatusSeeOther)
 }
 
 func (app *Application) createGroupForm(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, "createGroup.page.template.html", nil)
+	app.render(w, r, "createGroup.page.template.html", &templateData{
+		Form: forms.New(nil),
+	})
 }
 
 func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
