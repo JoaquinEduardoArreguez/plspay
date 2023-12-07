@@ -1,23 +1,27 @@
 {{define "base"}}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>{{template "title" .}} - PlsPay</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
-  </head>
-  <body>
-    <header>
-      <h1><a href="/">PlsPay</a></h1>
-    </header>
-    <nav>
-      <a href="/">Home</a>
-    </nav>
-    <section>{{template "body" .}}</section>
-    {{template "footer" .}}
-    <script src="/static/js/main.js" type="text/javascript" ></script>
-  </body>
+
+<head>
+  <meta charset="utf-8" />
+  <title>{{template "title" .}} - PlsPay</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
+</head>
+
+<body>
+  <header>
+    <h1><a href="/">PlsPay</a></h1>
+  </header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/groups/create">Create Group</a>
+  </nav>
+  <section>{{template "body" .}}</section>
+  {{template "footer" .}}
+  <script src="/static/js/main.js" type="text/javascript"></script>
+</body>
+
 </html>
 {{end}}

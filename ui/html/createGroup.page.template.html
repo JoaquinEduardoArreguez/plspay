@@ -1,0 +1,25 @@
+{{template "base" .}}
+{{define "title"}}Create Group{{end}}
+{{define "body"}}
+<form action="/groups/create" method="post">
+    <div>
+        <label>Name:</label>
+        <input type='text' name='name'>
+    </div>
+    <div>
+        <label>Description:</label>
+        <input type='text' name='description'>
+    </div>
+    <div>
+        <label>Owner:</label>
+        <input type="text" name='owner'>
+    </div>
+    <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+    </div>
+    <div>
+        <input type='submit' value='Create Group'>
+    </div>
+</form>
+{{end}}

@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
 	"gorm.io/gorm"
@@ -32,9 +34,21 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
+
+	errorParsingForm := r.ParseForm()
+	if errorParsingForm != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	name := r.PostForm.Get("name")
+	description := r.PostForm.Get("description")
+	owner := r.PostForm.Get("owner")
+	date, _ := time.Parse("2006-01-02", r.PostForm.Get("date"))
+
 	// group owner (User)
 	groupOwner := &models.User{}
-	dbResponse := app.userRepository.GetByID(1, groupOwner)
+	dbResponse := app.userRepository.GetByName(owner, groupOwner)
 
 	if dbResponse.Error != nil {
 		switch dbResponse.Error {
@@ -47,21 +61,23 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Group
-	group, errorConstructingGroup := models.NewGroup(groupOwner, "Asado", "Asado 23 jul")
+	group, errorConstructingGroup := models.NewGroup(groupOwner, name, description, date)
 
 	if errorConstructingGroup != nil {
 		app.errorLog.Fatal(errorConstructingGroup)
 	}
 
-	errorCreatingGroup := app.groupRepository.Create(group) // error ignored
+	insertGroupResponse := app.groupRepository.Create(group) // error ignored
 
-	if errorCreatingGroup != nil {
+	if insertGroupResponse.Error != nil {
 		http.Error(w, "Error creating group", http.StatusInternalServerError)
 	}
+
+	http.Redirect(w, r, fmt.Sprintf("/groups/%d", group.ID), http.StatusSeeOther)
 }
 
 func (app *Application) createGroupForm(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create group form"))
+	app.render(w, r, "createGroup.page.template.html", nil)
 }
 
 func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
