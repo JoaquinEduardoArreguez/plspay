@@ -13,6 +13,10 @@ type BaseRepository struct {
 	DB *gorm.DB
 }
 
+func (r *BaseRepository) GetAll(entities interface{}) *gorm.DB {
+	return r.DB.Find(entities)
+}
+
 func (r *BaseRepository) GetByID(id uint, entity interface{}) *gorm.DB {
 	return r.DB.First(entity, id)
 }
