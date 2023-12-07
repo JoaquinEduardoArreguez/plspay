@@ -1,10 +1,8 @@
-{{template "base" .}} {{define "title"}}{{.GroupByIdDto.Name}}{{end}} {{define
-"body"}} {{with .GroupByIdDto}}
+{{template "base" .}} {{define "title"}}{{.GroupByIdDto.Name}}{{end}} {{define "body"}} {{with .GroupByIdDto}}
 <div class="group">
     <div class="metadata">
         <strong>{{.Name}}</strong>
     </div>
-    <pre><code>{{.Description}}</code></pre>
     <pre><code>{{.Users}}</code></pre>
     <div class="metadata">
         <time>Created: {{.CreatedAt}}</time>
