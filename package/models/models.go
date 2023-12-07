@@ -11,7 +11,6 @@ import (
 type Group struct {
 	gorm.Model
 	Name         string
-	Description  string
 	Date         time.Time
 	Users        []*User       `gorm:"many2many:user_groups;"`
 	Expenses     []Expense     `gorm:"foreignKey:Group"`
@@ -23,7 +22,7 @@ type GroupDTO struct {
 	CreatedAt    string
 	UpdatedAt    string
 	Name         string
-	Description  string
+	Date         string
 	Users        string
 	Expenses     []Expense
 	Transactions []Transaction
@@ -67,7 +66,7 @@ type Transaction struct {
 	Receiver       User `gorm:"foreignkey:ReceiverUserID"`
 }
 
-func NewGroup(owner *User, name string, description string, date time.Time) (*Group, error) {
+func NewGroup(owner *User, name string, date time.Time) (*Group, error) {
 	if owner == nil {
 		return nil, errors.New("Group owner (user) is required")
 	}
@@ -75,7 +74,7 @@ func NewGroup(owner *User, name string, description string, date time.Time) (*Gr
 		return nil, errors.New("Group name is required")
 	}
 
-	return &Group{Name: name, Description: description, Date: date, Users: []*User{owner}}, nil
+	return &Group{Name: name, Date: date, Users: []*User{owner}}, nil
 }
 
 func NewUser(name, email string) (*User, error) {
@@ -96,7 +95,7 @@ func (g *Group) ToDto() GroupDTO {
 		CreatedAt:    g.CreatedAt.Format(time.DateTime),
 		UpdatedAt:    g.UpdatedAt.Format(time.DateTime),
 		Name:         g.Name,
-		Description:  g.Description,
+		Date:         g.Date.Format(time.DateTime),
 		Expenses:     g.Expenses,
 		Transactions: g.Transactions,
 		Users:        strings.Join(usernames, ","),
