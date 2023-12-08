@@ -88,6 +88,8 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, insertGroupResponse.Error)
 	}
 
+	app.session.Put(r, "flash", "Group created!")
+
 	http.Redirect(w, r, fmt.Sprintf("/groups/%d", group.ID), http.StatusSeeOther)
 }
 

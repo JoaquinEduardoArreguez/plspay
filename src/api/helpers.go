@@ -32,10 +32,20 @@ func (app *Application) render(w http.ResponseWriter, r *http.Request, name stri
 
 	buffer := new(bytes.Buffer)
 
-	err := ts.Execute(buffer, td)
+	err := ts.Execute(buffer, app.addDefaultData(td, r))
 	if err != nil {
 		app.serverError(w, err)
 	}
 
 	buffer.WriteTo(w)
+}
+
+func (app *Application) addDefaultData(td *templateData, r *http.Request) *templateData {
+	if td == nil {
+		td = &templateData{}
+	}
+
+	td.Flash = app.session.PopString(r, "flash")
+	return td
+
 }

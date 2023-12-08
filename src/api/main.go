@@ -6,9 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models/repositories"
+	"github.com/golangcollege/sessions"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -17,6 +19,7 @@ import (
 type Application struct {
 	errorLog        *log.Logger
 	infoLog         *log.Logger
+	session         *sessions.Session
 	groupRepository *repositories.GroupRepository
 	userRepository  *repositories.UserRepository
 	templateCache   map[string]*template.Template
@@ -27,6 +30,7 @@ func main() {
 	// Configs
 	serverAddress := flag.String("serverAddress", ":3000", "HTTP network address, host:port .")
 	postgresDsn := flag.String("postgresDsn", "", "Postgres database DSN.")
+	sessionsKey := flag.String("sessionsKey", "jaodh+pPbnzHbS*+9Pk8qGWhTzbpa@ps", "Session secret key.")
 	flag.Parse()
 
 	// Initialization
@@ -43,9 +47,13 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	session := sessions.New([]byte(*sessionsKey))
+	session.Lifetime = 12 * time.Hour
+
 	app := &Application{
 		errorLog:        errorLog,
 		infoLog:         infoLog,
+		session:         session,
 		groupRepository: repositories.NewGroupRepository(database),
 		userRepository:  repositories.NewUserRepository(database),
 		templateCache:   templateCache,

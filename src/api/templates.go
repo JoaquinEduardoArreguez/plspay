@@ -12,6 +12,7 @@ type templateData struct {
 	Form         *forms.Form
 	GroupDtos    []*models.GroupDTO
 	GroupByIdDto *models.GroupDTO
+	Flash        string
 }
 
 func newTemplateCache(dir string) (map[string]*template.Template, error) {
