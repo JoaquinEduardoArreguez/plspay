@@ -1,8 +1,15 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
 	"gorm.io/gorm"
+)
+
+var (
+	InvalidCredentialsError = errors.New("invalid credentials")
+	DuplicatedEmailError    = errors.New("duplicated email")
 )
 
 type UserRepository struct {
@@ -15,6 +22,10 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 
 func (r *UserRepository) GetByName(name string, entity interface{}) *gorm.DB {
 	return r.DB.Where("name = ?", name).First(entity)
+}
+
+func (r *UserRepository) GetByEmail(email string, user models.User) *gorm.DB {
+	return r.DB.Where("email = ?", email).First(user)
 }
 
 func (r *UserRepository) GetUserNames() ([]string, error) {
@@ -31,4 +42,8 @@ func (r *UserRepository) GetUserNames() ([]string, error) {
 	}
 
 	return userNames, nil
+}
+
+func (r *UserRepository) Authenticate(email, password string) (int, error) {
+	return 0, nil
 }

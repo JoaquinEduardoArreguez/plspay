@@ -31,7 +31,8 @@ type GroupDTO struct {
 type User struct {
 	gorm.Model
 	Name                 string
-	Email                string
+	Email                string        `gorm:"unique"`
+	Hashed_passwod       string        `gorm:"size:60"`
 	Groups               []*Group      `gorm:"many2many:user_groups;"`
 	Expenses             []Expense     `gorm:"foreignKey:Owner"`
 	ParticipatedExpenses []*Expense    `gorm:"many2many:expense_participants;"`

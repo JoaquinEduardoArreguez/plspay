@@ -14,15 +14,24 @@ func (app *Application) routes() http.Handler {
 
 	serverMux := pat.New()
 
-	serverMux.Get("/", http.HandlerFunc(app.home))
+	// Home
+	serverMux.Get("/", dynamicMiddleware.ThenFunc(app.home))
 
-	serverMux.Get("/groups/create", dynamicMiddleware.Then(http.HandlerFunc(app.createGroupForm)))
-	serverMux.Post("/groups/create", dynamicMiddleware.Then(http.HandlerFunc(app.createGroup)))
-	serverMux.Get("/groups/:id", dynamicMiddleware.Then(http.HandlerFunc(app.getGroupById)))
+	// Groups
+	serverMux.Get("/groups/create", dynamicMiddleware.ThenFunc(app.createGroupForm))
+	serverMux.Post("/groups/create", dynamicMiddleware.ThenFunc(app.createGroup))
+	serverMux.Get("/groups/:id", dynamicMiddleware.ThenFunc(app.getGroupById))
 
-	serverMux.Get("/users/create", dynamicMiddleware.Then(http.HandlerFunc(app.createUserForm)))
-	serverMux.Post("/users/create", dynamicMiddleware.Then(http.HandlerFunc(app.createUser)))
-	serverMux.Get("/users/:id", dynamicMiddleware.Then(http.HandlerFunc(app.getUserById)))
+	// Users
+	serverMux.Get("/users/create", dynamicMiddleware.ThenFunc(app.createUserForm))
+	serverMux.Post("/users/create", dynamicMiddleware.ThenFunc(app.createUser))
+
+	serverMux.Get("/users/signup", dynamicMiddleware.ThenFunc(app.signupUserForm))
+	serverMux.Get("/users/login", dynamicMiddleware.ThenFunc(app.loginUserForm))
+	serverMux.Post("/users/signup", dynamicMiddleware.ThenFunc(app.signupUser))
+	serverMux.Post("/users/login", dynamicMiddleware.ThenFunc(app.loginUser))
+	serverMux.Post("/users/logout", dynamicMiddleware.ThenFunc(app.logoutUser))
+	serverMux.Get("/users/:id", dynamicMiddleware.ThenFunc(app.getUserById))
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	serverMux.Get("/static/", http.StripPrefix("/static", fileServer))

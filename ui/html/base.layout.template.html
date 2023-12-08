@@ -21,8 +21,17 @@
       <h1><a href="/">PlsPay</a></h1>
     </header>
     <nav>
-      <a href="/">Home</a>
-      <a href="/groups/create">Create Group</a>
+      <div>
+        <a href="/">Home</a>
+        <a href="/groups/create">Create Group</a>
+      </div>
+      <div>
+        <a href="/users/signup">Signup</a>
+        <a href="/users/login">Login</a>
+        <form action="/users/logout" method="post">
+          <button>Logout</button>
+        </form>
+      </div>
     </nav>
     <section>
       {{with .Flash}}
