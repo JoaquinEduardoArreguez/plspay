@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"html/template"
 	"log"
@@ -49,6 +50,7 @@ func main() {
 
 	session := sessions.New([]byte(*sessionsKey))
 	session.Lifetime = 12 * time.Hour
+	session.Secure = true
 
 	app := &Application{
 		errorLog:        errorLog,
@@ -59,9 +61,23 @@ func main() {
 		templateCache:   templateCache,
 	}
 
+	tlsConfig := &tls.Config{
+		PreferServerCipherSuites: true,
+		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	infoLog.Printf("Starting server on '%v'", *serverAddress)
-	server := &http.Server{Addr: *serverAddress, ErrorLog: errorLog, Handler: app.routes()}
-	serveError := server.ListenAndServe()
+	server := &http.Server{
+		Addr:      *serverAddress,
+		ErrorLog:  errorLog,
+		Handler:   app.routes(),
+		TLSConfig: tlsConfig,
+
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	serveError := server.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 
 	errorLog.Fatal(serveError)
 }
