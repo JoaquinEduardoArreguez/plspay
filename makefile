@@ -16,7 +16,8 @@ stop-docker:
 	docker-compose -f docker.compose.yml down
 
 debug-build:
-	go build -o ./builds/${BINARY_NAME}.out -gcflags all=-N -l ./src/api/*
+	go build -gcflags=all="-N -l" -o ./builds/${BINARY_NAME}.debug.out ./src/api/*
 
-debug:
-	/Users/joaquinarreguez/go/bin/dlv dap --listen=127.0.0.1:54415 --log-dest=3
+debug: debug-build
+	clear
+	./builds/${BINARY_NAME}.debug.out -postgresDsn=${POSTGRES_DSN}
