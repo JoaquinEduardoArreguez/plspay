@@ -84,7 +84,8 @@ func main() {
 
 func initDatabase(dsn string) (*gorm.DB, error) {
 	database, openDatabaseError := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger:         logger.Default.LogMode(logger.Info),
+		TranslateError: true,
 	})
 	if openDatabaseError != nil {
 		return nil, openDatabaseError
