@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
+	"github.com/JoaquinEduardoArreguez/plspay/package/models/repositories"
 	"gorm.io/gorm"
 )
 
@@ -189,17 +191,55 @@ func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, "create new user")
+	_, err := app.userRepository.CreateUser(form.Get("name"), form.Get("email"), form.Get("password"))
+
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		form.Errors.Add("email", "Email address already in use")
+		app.render(w, r, "signup.page.template.html", &templateData{Form: form})
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.session.Put(r, "flash", "Signup successful, please log in.")
+
+	http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+
 }
 
 func (app *Application) loginUserForm(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display the user login form...")
+	app.render(w, r, "login.page.template.html", &templateData{Form: forms.New(nil)})
 }
 
 func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Authenticate and login the user...")
+
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+
+	id, err := app.userRepository.Authenticate(form.Get("email"), form.Get("password"))
+	if err == repositories.InvalidCredentialsError {
+		form.Errors.Add("generic", "Invalid credentials")
+		app.render(w, r, "login.page.template.html", &templateData{Form: form})
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.session.Put(r, "userID", id)
+	app.session.Put(r, "flash", "Logged in successfully!")
+
+	http.Redirect(w, r, "/groups/create", http.StatusSeeOther)
 }
 
 func (app *Application) logoutUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Logout the user...")
+	app.session.Remove(r, "userID")
+	app.session.Put(r, "flash", "You've been logged out successfully!")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
