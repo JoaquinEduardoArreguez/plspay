@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/JoaquinEduardoArreguez/plspay/package/models"
+	"github.com/justinas/nosurf"
+	"gorm.io/gorm"
 )
 
 func secureHeaders(next http.Handler) http.Handler {
@@ -38,5 +44,52 @@ func (app *Application) recoverPanic(next http.Handler) http.Handler {
 			}
 		}()
 		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *Application) requireAuthenticatedUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if app.authenticatedUser(r) == nil {
+			http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func noSurf(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+	})
+
+	return csrfHandler
+}
+
+func (app *Application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		exists := app.session.Exists(r, "userID")
+		if !exists {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		var user models.User
+		dbError := app.userRepository.GetByID(uint(app.session.GetInt(r, "userID")), &user).Error
+
+		if errors.Is(dbError, gorm.ErrRecordNotFound) {
+			app.session.Remove(r, "userID")
+			next.ServeHTTP(w, r)
+			return
+		} else if dbError != nil {
+			app.serverError(w, dbError)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), contextKeyUser, &user)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

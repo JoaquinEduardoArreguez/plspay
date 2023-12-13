@@ -1,5 +1,6 @@
 {{template "base" .}} {{define "title"}}Login{{end}} {{define "body"}}
 <form action="/users/login" method="POST" novalidate>
+  <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
   {{with .Form}} {{with .Errors.Get "generic"}}
   <div class="error">{{.}}</div>
   {{end}}

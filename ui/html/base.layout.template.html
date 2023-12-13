@@ -23,14 +23,20 @@
     <nav>
       <div>
         <a href="/">Home</a>
+        {{if .AuthenticatedUser}}
         <a href="/groups/create">Create Group</a>
+        {{end}}
       </div>
       <div>
-        <a href="/users/signup">Signup</a>
-        <a href="/users/login">Login</a>
+        {{if .AuthenticatedUser}}
         <form action="/users/logout" method="post">
-          <button>Logout</button>
+          <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
+          <button>Logout ({{.AuthenticatedUser.Name}})</button>
         </form>
+        {{else}}
+        <a href="/users/login">Login</a>
+        <a href="/users/signup">Signup</a>
+        {{end}}
       </div>
     </nav>
     <section>

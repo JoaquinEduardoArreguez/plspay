@@ -17,6 +17,10 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+type contextKey string
+
+var contextKeyUser = contextKey("user")
+
 type Application struct {
 	errorLog        *log.Logger
 	infoLog         *log.Logger

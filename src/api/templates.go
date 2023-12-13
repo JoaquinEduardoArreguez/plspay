@@ -9,10 +9,12 @@ import (
 )
 
 type templateData struct {
-	Form         *forms.Form
-	GroupDtos    []*models.GroupDTO
-	GroupByIdDto *models.GroupDTO
-	Flash        string
+	Form              *forms.Form
+	GroupDtos         []*models.GroupDTO
+	GroupByIdDto      *models.GroupDTO
+	Flash             string
+	AuthenticatedUser *models.User
+	CsrfToken         string
 }
 
 func newTemplateCache(dir string) (map[string]*template.Template, error) {

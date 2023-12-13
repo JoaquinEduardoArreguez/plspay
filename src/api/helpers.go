@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+
+	"github.com/JoaquinEduardoArreguez/plspay/package/models"
+	"github.com/justinas/nosurf"
 )
 
 func (app *Application) serverError(w http.ResponseWriter, err error) {
@@ -46,6 +49,15 @@ func (app *Application) addDefaultData(td *templateData, r *http.Request) *templ
 	}
 
 	td.Flash = app.session.PopString(r, "flash")
+	td.AuthenticatedUser = app.authenticatedUser(r)
+	td.CsrfToken = nosurf.Token(r)
 	return td
+}
 
+func (app *Application) authenticatedUser(r *http.Request) *models.User {
+	user, ok := r.Context().Value(contextKeyUser).(*models.User)
+	if !ok {
+		return nil
+	}
+	return user
 }

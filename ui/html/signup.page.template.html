@@ -1,5 +1,6 @@
 {{template "base" .}} {{define "title"}}Signup{{end}} {{define "body"}}
 <form action="/users/signup" method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
   {{with .Form}}
   <div>
     <label>Name:</label>
