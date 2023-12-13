@@ -213,7 +213,6 @@ func (app *Application) loginUserForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
-
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
