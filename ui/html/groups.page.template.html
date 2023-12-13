@@ -1,0 +1,27 @@
+{{template "base" .}} {{define "title"}}Groups{{end}} {{define "body"}}
+<h2>Groups</h2>
+{{if .GroupDtos}}
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Date</th>
+    <th>Created</th>
+  </tr>
+  {{range .GroupDtos}}
+  <tr>
+    <td><a href="/groups/{{.ID}}">{{.Name}}</a></td>
+    <td>{{.Date}}</td>
+    <td>{{.CreatedAt}}</td>
+  </tr>
+  {{end}}
+</table>
+{{else}}
+<p>There's nothing to see here... yet!</p>
+{{end}}
+<div>
+  <form action="/groups">
+    <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
+    <button>New Group</button>
+  </form>
+</div>
+{{end}}
