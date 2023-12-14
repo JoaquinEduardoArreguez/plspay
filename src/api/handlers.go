@@ -15,25 +15,7 @@ import (
 )
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
-	// Get groups to display
-	var groups []models.Group
-	dbResponse := app.groupRepository.DB.Preload("Users").Find(&groups)
-
-	if dbResponse.Error != nil {
-		app.serverError(w, dbResponse.Error)
-		return
-	}
-
-	// Convert them to DTOs
-	var groupDtos []*models.GroupDTO
-	for _, group := range groups {
-		dto := group.ToDto()
-		groupDtos = append(groupDtos, &dto)
-	}
-
-	app.render(w, r, "home.page.template.html", &templateData{
-		GroupDtos: groupDtos,
-	})
+	http.Redirect(w, r, "/groups", http.StatusSeeOther)
 }
 
 func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
@@ -43,16 +25,9 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate input
-	availableUserNames, getUserNamesError := app.userRepository.GetUserNames()
-	if getUserNamesError != nil {
-		app.serverError(w, getUserNamesError)
-	}
-
 	form := forms.New(r.PostForm)
-	form.Required("name", "owner", "date")
+	form.Required("name", "date")
 	form.MaxLength("name", 20)
-	form.PermittedValues("owner", availableUserNames...)
 
 	if !form.Valid() {
 		app.render(w, r, "createGroup.page.template.html", &templateData{Form: form})
@@ -60,24 +35,9 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := form.Get("name")
-	owner := form.Get("owner")
 	date, _ := time.Parse("2006-01-02", form.Get("date"))
 
-	// group owner (User)
-	groupOwner := &models.User{}
-	dbResponse := app.userRepository.GetByName(owner, groupOwner)
-
-	if dbResponse.Error != nil {
-		switch dbResponse.Error {
-		case gorm.ErrRecordNotFound:
-			app.notFound(w)
-		default:
-			app.serverError(w, dbResponse.Error)
-		}
-		return
-	}
-
-	// Create Group
+	groupOwner := app.authenticatedUser(r)
 	group, errorConstructingGroup := models.NewGroup(groupOwner, name, date)
 
 	if errorConstructingGroup != nil {
@@ -99,6 +59,30 @@ func (app *Application) createGroupForm(w http.ResponseWriter, r *http.Request) 
 	app.render(w, r, "createGroup.page.template.html", &templateData{
 		Form: forms.New(nil),
 	})
+}
+
+func (app *Application) groupsForm(w http.ResponseWriter, r *http.Request) {
+	var userGroupsDtos []*models.GroupDTO
+
+	user := app.authenticatedUser(r)
+	dbResponse := app.userRepository.GetByID(user.ID, user, "Groups")
+	if errors.Is(dbResponse.Error, gorm.ErrRecordNotFound) {
+		app.notFound(w)
+		return
+	} else if dbResponse.Error != nil {
+		app.serverError(w, dbResponse.Error)
+		return
+	}
+
+	for _, group := range user.Groups {
+		dto := group.ToDto()
+		userGroupsDtos = append(userGroupsDtos, &dto)
+	}
+
+	app.render(w, r, "groups.page.template.html", &templateData{
+		GroupDtos: userGroupsDtos,
+	})
+
 }
 
 func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
@@ -174,6 +158,7 @@ func (app *Application) signupUserForm(w http.ResponseWriter, r *http.Request) {
 		Form: forms.New(nil),
 	})
 }
+
 func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 	parseFormError := r.ParseForm()
 	if parseFormError != nil {
@@ -205,7 +190,6 @@ func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 	app.session.Put(r, "flash", "Signup successful, please log in.")
 
 	http.Redirect(w, r, "/users/login", http.StatusSeeOther)
-
 }
 
 func (app *Application) loginUserForm(w http.ResponseWriter, r *http.Request) {
@@ -234,7 +218,7 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 	app.session.Put(r, "userID", id)
 	app.session.Put(r, "flash", "Logged in successfully!")
 
-	http.Redirect(w, r, "/groups/create", http.StatusSeeOther)
+	http.Redirect(w, r, "/groups", http.StatusSeeOther)
 }
 
 func (app *Application) logoutUser(w http.ResponseWriter, r *http.Request) {

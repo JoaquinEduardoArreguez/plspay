@@ -1,5 +1,5 @@
 {{template "base" .}} {{define "title"}}Create Group{{end}} {{define "body"}}
-<form action="/groups/create" method="post">
+<form action="/groups" method="post">
   <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
   {{with .Form}}
   <div>
@@ -8,14 +8,6 @@
     <label class="error">{{.}}</label>
     {{end}}
     <input type="text" name="name" value='{{.Get "name"}}' />
-  </div>
-
-  <div>
-    <label>Owner:</label>
-    {{with .Errors.Get "owner"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="owner" value='{{.Get "owner"}}' />
   </div>
 
   <div>

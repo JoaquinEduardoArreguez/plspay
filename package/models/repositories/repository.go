@@ -17,8 +17,14 @@ func (r *BaseRepository) GetAll(entities interface{}) *gorm.DB {
 	return r.DB.Find(entities)
 }
 
-func (r *BaseRepository) GetByID(id uint, entity interface{}) *gorm.DB {
-	return r.DB.First(entity, id)
+func (r *BaseRepository) GetByID(id uint, entity interface{}, relations ...string) *gorm.DB {
+	query := r.DB.Model(entity).Where("id = ?", id)
+
+	for _, relation := range relations {
+		query = query.Preload(relation)
+	}
+
+	return query.First(entity)
 }
 
 func (r *BaseRepository) Create(entity interface{}) *gorm.DB {
