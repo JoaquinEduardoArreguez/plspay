@@ -11,6 +11,14 @@
   </div>
 
   <div>
+    <label>Participants:</label>
+    {{with .Errors.Get "participants"}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="text" name="participants" value='{{.Get "participants"}}' />
+  </div>
+
+  <div>
     <label for="date">Date:</label>
     {{with .Errors.Get "date"}}
     <label class="error">{{.}}</label>

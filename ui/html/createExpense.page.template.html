@@ -1,5 +1,5 @@
 {{template "base" .}} {{define "title"}}Create Expense{{end}} {{define "body"}}
-<form action="/groups/{{.GroupID}}/expenses" method="post">
+<form action="/groups/{{.Group.ID}}/expenses" method="post">
   <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
   {{with .Form}}
   <div>
@@ -19,11 +19,21 @@
   </div>
 
   <div>
-    <label>Participants:</label>
-    {{with .Errors.Get "participants"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="participants" value='{{.Get "participants"}}' />
+    <label for="select-owner">Owner:</label>
+    <select name="select-owner" id="select-owner">
+      {{range $.Group.Users}}
+      <option value="{{.Name}}">{{.Name}}</option>
+      {{end}}
+    </select>
+  </div>
+
+  <div>
+    <label for="select-participants">Participants:</label>
+    <select name="select-participants" id="select-owner" multiple>
+      {{range $.Group.Users}}
+      <option value="{{.Name}}">{{.Name}}</option>
+      {{end}}
+    </select>
   </div>
 
   <div>
