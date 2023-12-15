@@ -67,7 +67,7 @@ type Transaction struct {
 	Receiver       User `gorm:"foreignkey:ReceiverUserID"`
 }
 
-func NewGroup(owner *User, name string, date time.Time) (*Group, error) {
+func NewGroup(name string, owner *User, participants []*User, date time.Time) (*Group, error) {
 	if owner == nil {
 		return nil, errors.New("Group owner (user) is required")
 	}
@@ -75,7 +75,10 @@ func NewGroup(owner *User, name string, date time.Time) (*Group, error) {
 		return nil, errors.New("Group name is required")
 	}
 
-	return &Group{Name: name, Date: date, Users: []*User{owner}}, nil
+	groupParticipants := []*User{owner}
+	groupParticipants = append(groupParticipants, participants...)
+
+	return &Group{Name: name, Date: date, Users: groupParticipants}, nil
 }
 
 func NewUser(name, email string) (*User, error) {
