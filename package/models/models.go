@@ -85,6 +85,36 @@ func NewUser(name, email string) (*User, error) {
 	return &User{Name: name, Email: email}, nil
 }
 
+func NewExpense(description string, amount float64, groupID uint, ownerID uint, participants []*User) (*Expense, error) {
+	if description == "" {
+		return nil, errors.New("description is required")
+	}
+	if amount == 0 {
+		return nil, errors.New("amount is required")
+	}
+	if participants == nil {
+		return nil, errors.New("participants is required")
+	}
+
+	if groupID == 0 {
+		return nil, errors.New("group must be defined")
+	}
+	if ownerID == 0 {
+		return nil, errors.New("owner must be defined")
+	}
+	if participants == nil {
+		return nil, errors.New("participants must be defined")
+	}
+
+	return &Expense{
+		Description:  description,
+		Amount:       amount,
+		Participants: participants,
+		Owner:        ownerID,
+		Group:        groupID,
+	}, nil
+}
+
 func (g *Group) ToDto() GroupDTO {
 	var usernames []string
 	for _, user := range g.Users {

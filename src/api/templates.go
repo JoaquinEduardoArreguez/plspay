@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
@@ -11,10 +12,11 @@ import (
 type templateData struct {
 	Form              *forms.Form
 	GroupDtos         []*models.GroupDTO
-	GroupByIdDto      *models.GroupDTO
 	Flash             string
 	AuthenticatedUser *models.User
 	CsrfToken         string
+	Group             *models.Group
+	GroupID           int
 }
 
 func newTemplateCache(dir string) (map[string]*template.Template, error) {
@@ -27,7 +29,7 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.ParseFiles(page)
+		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}
@@ -46,4 +48,15 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 	}
 
 	return cache, nil
+}
+
+func humanDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format("02 Jan 2006 at 15:04")
+}
+
+var functions = template.FuncMap{
+	"humanDate": humanDate,
 }

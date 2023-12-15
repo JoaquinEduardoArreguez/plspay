@@ -1,0 +1,33 @@
+{{template "base" .}} {{define "title"}}Create Expense{{end}} {{define "body"}}
+<form action="/groups/{{.GroupID}}/expenses" method="post">
+  <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
+  {{with .Form}}
+  <div>
+    <label>Description:</label>
+    {{with .Errors.Get "description"}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="text" name="description" value='{{.Get "description"}}' />
+  </div>
+
+  <div>
+    <label>Amount:</label>
+    {{with .Errors.Get "amount"}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="text" name="amount" value='{{.Get "amount"}}' />
+  </div>
+
+  <div>
+    <label>Participants:</label>
+    {{with .Errors.Get "participants"}}
+    <label class="error">{{.}}</label>
+    {{end}}
+    <input type="text" name="participants" value='{{.Get "participants"}}' />
+  </div>
+
+  <div>
+    <input type="submit" value="Add Expense" />
+  </div>
+</form>
+{{end}} {{end}}

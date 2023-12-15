@@ -26,7 +26,7 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("name", "date")
+	form.Required("name")
 	form.MaxLength("name", 20)
 
 	if !form.Valid() {
@@ -61,6 +61,64 @@ func (app *Application) createGroupForm(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+func (app *Application) createExpenseForm(w http.ResponseWriter, r *http.Request) {
+	groupId, err := strconv.Atoi(r.URL.
+		Query().Get(":id"))
+	if err != nil || groupId < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	app.render(w, r, "createExpense.page.template.html", &templateData{
+		GroupID: groupId,
+		Form:    forms.New(nil),
+	})
+}
+
+/*
+func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
+
+	groupId, err := strconv.Atoi(r.URL.
+		Query().Get(":id"))
+	if err != nil || groupId < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	errorParsingForm := r.ParseForm()
+	if errorParsingForm != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("description", "amount", "participants", "owner")
+	form.MaxLength("description", 20)
+	form.MaxLength("owner", 20)
+	form.MaxLength("amount", 5)
+	form.IsFloat64("amount")
+	form.MaxLength("participants", 100)
+
+	if !form.Valid() {
+		app.render(w, r, "createExpense.page.template.html", &templateData{
+			Form: form,
+		})
+	}
+
+	var expenseOwner models.User
+	getOwnerByNameError := app.userRepository.GetByName(form.Get("owner"), expenseOwner).Error
+	if getOwnerByNameError != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	float64Amount, _ := strconv.ParseFloat(form.Get("amount"), 64)
+
+	expense, errorConstructingExpense := models.NewExpense(form.Get("description"), float64Amount, uint(groupId), strconv.ParseInt(form.Get("owner"), 10, 64), nil)
+
+}
+*/
+
 func (app *Application) groupsForm(w http.ResponseWriter, r *http.Request) {
 	var userGroupsDtos []*models.GroupDTO
 
@@ -82,7 +140,6 @@ func (app *Application) groupsForm(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "groups.page.template.html", &templateData{
 		GroupDtos: userGroupsDtos,
 	})
-
 }
 
 func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
@@ -105,9 +162,7 @@ func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupDto := group.ToDto()
-
-	app.render(w, r, "show.page.template.html", &templateData{GroupByIdDto: &groupDto})
+	app.render(w, r, "showGroup.page.template.html", &templateData{Group: group})
 }
 
 func (app *Application) createUser(w http.ResponseWriter, r *http.Request) {

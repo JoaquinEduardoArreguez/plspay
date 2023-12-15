@@ -1,0 +1,41 @@
+{{template "base" .}} {{define "title"}}{{.Group.Name}}{{end}} {{define "body"}}
+{{with .Group}}
+<div class="group">
+  <div class="metadata">
+    <h2>{{.Name}}</h2>
+  </div>
+  {{if .Date}}
+  <pre>Event happened on <time>{{humanDate .Date}}</time></pre>
+  {{end}}
+  <pre><code>Participants: {{range .Users}}{{.Name}},{{end}}</code></pre>
+  <h2>Expenses</h2>
+  {{if .Expenses}}
+  <table>
+    <tr>
+      <th>Description</th>
+      <th>Owner</th>
+      <th>Participants</th>
+    </tr>
+    {{range .Expenses}}
+    <tr>
+      <th>{{.Description}}</th>
+      <th>{{.Owner}}</th>
+      <th>{{range .Participants}}{{.Name}},{{end}}</th>
+    </tr>
+    {{end}}
+  </table>
+  {{else}}
+  <p>There's nothing to see here... yet!</p>
+  {{end}}
+  <div>
+    <form action="/groups/{{.ID}}/expenses">
+      <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}" />
+      <button>New Expense</button>
+    </form>
+  </div>
+  <div class="metadata">
+    <div><time>Created on {{humanDate .CreatedAt}}</time></div>
+    <div><time>Last updated on {{humanDate .UpdatedAt}}</time></div>
+  </div>
+</div>
+{{end}} {{end}}

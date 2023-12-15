@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -72,5 +73,17 @@ func (f *Form) MatchesPattern(field string, pattern *regexp.Regexp) {
 	}
 	if !pattern.MatchString(value) {
 		f.Errors.Add(field, "This field is invalid")
+	}
+}
+
+func (form *Form) IsFloat64(field string) {
+	value := form.Get(field)
+	if value == "" {
+		return
+	}
+
+	_, errorParsingFloat := strconv.ParseFloat(value, 64)
+	if errorParsingFloat != nil {
+		form.Errors.Add(field, "This field must be a number")
 	}
 }
