@@ -25,6 +25,10 @@ func (r *UserRepository) GetByName(name string, entity interface{}) *gorm.DB {
 	return r.DB.Where("name = ?", name).First(entity)
 }
 
+func (r *UserRepository) FindByNames(names []string, users *[]models.User) *gorm.DB {
+	return r.DB.Where("name IN ?", names).Find(users)
+}
+
 func (r *UserRepository) GetByEmail(email string, user *models.User) *gorm.DB {
 	return r.DB.Where("email = ?", email).First(user)
 }
@@ -43,6 +47,15 @@ func (r *UserRepository) GetUserNames() ([]string, error) {
 	}
 
 	return userNames, nil
+}
+
+func (r *UserRepository) GetUsers() ([]models.User, error) {
+	var users []models.User
+	dbResponse := r.GetAll(&users)
+	if dbResponse.Error != nil {
+		return nil, dbResponse.Error
+	}
+	return users, nil
 }
 
 func (r *UserRepository) Authenticate(email, password string) (int, error) {
