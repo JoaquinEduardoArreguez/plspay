@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
@@ -26,8 +27,9 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("name")
+	form.Required("name", "participants")
 	form.MaxLength("name", 20)
+	form.MaxLength("participants", 100)
 
 	if !form.Valid() {
 		app.render(w, r, "createGroup.page.template.html", &templateData{Form: form})
@@ -35,16 +37,33 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := form.Get("name")
+	participantsList := strings.Split(form.Get("participants"), ",")
 	date, _ := time.Parse("2006-01-02", form.Get("date"))
 
+	var participants []models.User
+	dbErrorFindingUsers := app.userRepository.FindByNames(participantsList, &participants).Error
+	if errors.Is(dbErrorFindingUsers, gorm.ErrRecordNotFound) {
+		app.notFound(w)
+		return
+	} else if dbErrorFindingUsers != nil {
+		app.serverError(w, dbErrorFindingUsers)
+		return
+	}
+
 	groupOwner := app.authenticatedUser(r)
-	group, errorConstructingGroup := models.NewGroup(groupOwner, name, date)
+
+	var participantsPtrs []*models.User
+	for _, participant := range participants {
+		participantsPtrs = append(participantsPtrs, &participant)
+	}
+
+	group, errorConstructingGroup := models.NewGroup(name, groupOwner, participantsPtrs, date)
 
 	if errorConstructingGroup != nil {
 		app.errorLog.Fatal(errorConstructingGroup)
 	}
 
-	insertGroupResponse := app.groupRepository.Create(group) // error ignored
+	insertGroupResponse := app.groupRepository.Create(group)
 
 	if insertGroupResponse.Error != nil {
 		app.serverError(w, insertGroupResponse.Error)
@@ -69,9 +88,19 @@ func (app *Application) createExpenseForm(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	var group models.Group
+	dbError := app.groupRepository.GetByID(uint(groupId), &group, "Users").Error
+	if errors.Is(dbError, gorm.ErrRecordNotFound) {
+		app.notFound(w)
+		return
+	} else if dbError != nil {
+		app.serverError(w, dbError)
+		return
+	}
+
 	app.render(w, r, "createExpense.page.template.html", &templateData{
-		GroupID: groupId,
-		Form:    forms.New(nil),
+		Group: &group,
+		Form:  forms.New(nil),
 	})
 }
 
