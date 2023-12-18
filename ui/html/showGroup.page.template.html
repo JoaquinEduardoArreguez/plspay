@@ -13,13 +13,15 @@
   <table>
     <tr>
       <th>Description</th>
+      <th>Amount</th>
       <th>Owner</th>
       <th>Participants</th>
     </tr>
     {{range .Expenses}}
     <tr>
       <th>{{.Description}}</th>
-      <th>{{.Owner}}</th>
+      <th>{{.Amount}}</th>
+      <th>{{.Owner.Name}}</th>
       <th>{{range .Participants}}{{.Name}},{{end}}</th>
     </tr>
     {{end}}
