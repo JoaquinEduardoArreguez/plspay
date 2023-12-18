@@ -99,14 +99,13 @@ func (app *Application) createExpenseForm(w http.ResponseWriter, r *http.Request
 	}
 
 	app.render(w, r, "createExpense.page.template.html", &templateData{
-		Group: &group,
-		Form:  forms.New(nil),
+		Group:   &group,
+		Form:    forms.New(nil),
+		GroupID: groupId,
 	})
 }
 
-/*
 func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
-
 	groupId, err := strconv.Atoi(r.URL.
 		Query().Get(":id"))
 	if err != nil || groupId < 1 {
@@ -121,21 +120,22 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("description", "amount", "participants", "owner")
+	form.Required("description", "amount", "select-participants", "select-owner")
 	form.MaxLength("description", 20)
-	form.MaxLength("owner", 20)
+	form.MaxLength("select-owner", 20)
 	form.MaxLength("amount", 5)
 	form.IsFloat64("amount")
-	form.MaxLength("participants", 100)
+	form.MaxLength("select-participants", 100)
 
 	if !form.Valid() {
 		app.render(w, r, "createExpense.page.template.html", &templateData{
-			Form: form,
+			Form:    form,
+			GroupID: groupId,
 		})
 	}
 
 	var expenseOwner models.User
-	getOwnerByNameError := app.userRepository.GetByName(form.Get("owner"), expenseOwner).Error
+	getOwnerByNameError := app.userRepository.GetByName(form.Get("select-owner"), &expenseOwner).Error
 	if getOwnerByNameError != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
@@ -143,10 +143,38 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 
 	float64Amount, _ := strconv.ParseFloat(form.Get("amount"), 64)
 
-	expense, errorConstructingExpense := models.NewExpense(form.Get("description"), float64Amount, uint(groupId), strconv.ParseInt(form.Get("owner"), 10, 64), nil)
+	participantsSlice := form.Values["select-participants"]
+	var participants []models.User
+	var participantsPtrs []*models.User
+	errorGettingParticipants := app.userRepository.FindByNames(participantsSlice, &participants).Error
+	if errors.Is(errorGettingParticipants, gorm.ErrRecordNotFound) {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	} else if errorGettingParticipants != nil {
+		app.serverError(w, errorGettingParticipants)
+		return
+	}
 
+	for _, participant := range participants {
+		tempParticipant := participant
+		participantsPtrs = append(participantsPtrs, &tempParticipant)
+	}
+
+	expense, errorConstructingExpense := models.NewExpense(form.Get("description"), float64Amount, uint(groupId), expenseOwner.ID, participantsPtrs)
+	if errorConstructingExpense != nil {
+		app.errorLog.Fatal(errorConstructingExpense)
+	}
+
+	insertExpenseError := app.expenseRepository.Create(expense).Error
+	if insertExpenseError != nil {
+		app.serverError(w, insertExpenseError)
+		return
+	}
+
+	app.session.Put(r, "flash", "Expense created!")
+
+	http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
 }
-*/
 
 func (app *Application) groupsForm(w http.ResponseWriter, r *http.Request) {
 	var userGroupsDtos []*models.GroupDTO
@@ -179,15 +207,13 @@ func (app *Application) getGroupById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	group := &models.Group{}
-	dbResponse := app.groupRepository.DB.Preload("Users").First(group, id)
+	dbError := app.groupRepository.GetByID(uint(id), group, "Users", "Expenses.Owner", "Expenses.Participants", "Transactions").Error
 
-	if dbResponse.Error != nil {
-		switch dbResponse.Error {
-		case gorm.ErrRecordNotFound:
-			app.notFound(w)
-		default:
-			app.serverError(w, dbResponse.Error)
-		}
+	if errors.Is(dbError, gorm.ErrRecordNotFound) {
+		app.notFound(w)
+		return
+	} else if dbError != nil {
+		app.serverError(w, dbError)
 		return
 	}
 

@@ -22,12 +22,13 @@ type contextKey string
 var contextKeyUser = contextKey("user")
 
 type Application struct {
-	errorLog        *log.Logger
-	infoLog         *log.Logger
-	session         *sessions.Session
-	groupRepository *repositories.GroupRepository
-	userRepository  *repositories.UserRepository
-	templateCache   map[string]*template.Template
+	errorLog          *log.Logger
+	infoLog           *log.Logger
+	session           *sessions.Session
+	groupRepository   *repositories.GroupRepository
+	userRepository    *repositories.UserRepository
+	expenseRepository *repositories.ExpenseRepository
+	templateCache     map[string]*template.Template
 }
 
 func main() {
@@ -57,12 +58,13 @@ func main() {
 	session.Secure = true
 
 	app := &Application{
-		errorLog:        errorLog,
-		infoLog:         infoLog,
-		session:         session,
-		groupRepository: repositories.NewGroupRepository(database),
-		userRepository:  repositories.NewUserRepository(database),
-		templateCache:   templateCache,
+		errorLog:          errorLog,
+		infoLog:           infoLog,
+		session:           session,
+		groupRepository:   repositories.NewGroupRepository(database),
+		userRepository:    repositories.NewUserRepository(database),
+		expenseRepository: repositories.NewExpenseRepository(database),
+		templateCache:     templateCache,
 	}
 
 	tlsConfig := &tls.Config{
