@@ -1,5 +1,5 @@
 {{template "base" .}} {{define "title"}}Create Group{{end}} {{define "body"}}
-<form action="/groups" method="post">
+<form action="/groups/create" method="post">
   <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
   {{with .Form}}
   <div>
