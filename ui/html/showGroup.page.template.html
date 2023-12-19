@@ -35,6 +35,12 @@
       <button>New Expense</button>
     </form>
   </div>
+  <div>
+    <form action="/groups/{{.ID}}/transactions">
+      <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}" />
+      <button>Calculate Transactions</button>
+    </form>
+  </div>
   <div class="metadata">
     <div><time>Created on {{humanDate .CreatedAt}}</time></div>
     <div><time>Last updated on {{humanDate .UpdatedAt}}</time></div>
