@@ -13,6 +13,10 @@ type BaseRepository struct {
 	DB *gorm.DB
 }
 
+func NewBaseRepository(db *gorm.DB) *BaseRepository {
+	return &BaseRepository{DB: db}
+}
+
 func (r *BaseRepository) GetAll(entities interface{}) *gorm.DB {
 	return r.DB.Find(entities)
 }
