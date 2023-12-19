@@ -9,8 +9,7 @@ import (
 )
 
 var (
-	InvalidCredentialsError = errors.New("invalid credentials")
-	//DuplicatedEmailError    = errors.New("duplicated email")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 type UserRepository struct {
@@ -63,12 +62,12 @@ func (r *UserRepository) Authenticate(email, password string) (int, error) {
 
 	dbResponse := r.GetByEmail(email, &user)
 	if errors.Is(dbResponse.Error, gorm.ErrRecordNotFound) {
-		return 0, InvalidCredentialsError
+		return 0, ErrInvalidCredentials
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Hashed_passwod), []byte(password))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return 0, InvalidCredentialsError
+		return 0, ErrInvalidCredentials
 	} else if err != nil {
 		return 0, err
 	}
