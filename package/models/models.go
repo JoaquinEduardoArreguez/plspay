@@ -15,6 +15,7 @@ type Group struct {
 	Users        []*User       `gorm:"many2many:user_groups;"`
 	Expenses     []Expense     `gorm:"foreignKey:Group"`
 	Transactions []Transaction `gorm:"foreignKey:Group"`
+	Balances     []Balance     `gorm:"foreignKey:Group"`
 }
 
 type GroupDTO struct {
@@ -28,6 +29,13 @@ type GroupDTO struct {
 	Transactions []Transaction
 }
 
+type Balance struct {
+	gorm.Model
+	User   uint
+	Group  uint
+	Amount float64
+}
+
 type User struct {
 	gorm.Model
 	Name                 string
@@ -38,6 +46,7 @@ type User struct {
 	ParticipatedExpenses []*Expense    `gorm:"many2many:expense_participants;"`
 	SenderTransactions   []Transaction `gorm:"foreignkey:SenderUserID"`
 	ReceiverTransactions []Transaction `gorm:"foreignkey:ReceiverUserID"`
+	Balances             []Balance     `gorm:"foreignKey:User"`
 }
 
 type UserDTO struct {
