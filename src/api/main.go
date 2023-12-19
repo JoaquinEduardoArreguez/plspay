@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
-	"github.com/JoaquinEduardoArreguez/plspay/package/models/repositories"
+	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
 	"github.com/golangcollege/sessions"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

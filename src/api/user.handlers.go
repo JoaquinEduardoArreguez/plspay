@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
-	"github.com/JoaquinEduardoArreguez/plspay/package/models/repositories"
+	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
 	"gorm.io/gorm"
 )
 
@@ -62,7 +62,7 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 	form := forms.New(r.PostForm)
 
 	id, err := app.userRepository.Authenticate(form.Get("email"), form.Get("password"))
-	if err == repositories.InvalidCredentialsError {
+	if err == repositories.ErrInvalidCredentials {
 		form.Errors.Add("generic", "Invalid credentials")
 		app.render(w, r, "login.page.template.html", &templateData{Form: form})
 		return
