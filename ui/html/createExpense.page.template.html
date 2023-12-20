@@ -22,7 +22,7 @@
     <label for="select-owner">Owner:</label>
     <select name="select-owner" id="select-owner">
       {{range $.Group.Users}}
-      <option value="{{.Name}}">{{.Name}}</option>
+      <option value="{{.ID}}">{{.Name}}</option>
       {{end}}
     </select>
   </div>
@@ -31,7 +31,7 @@
     <label for="select-participants">Participants:</label>
     <select name="select-participants" id="select-owner" multiple>
       {{range $.Group.Users}}
-      <option value="{{.Name}}">{{.Name}}</option>
+      <option value="{{.ID}}">{{.Name}}</option>
       {{end}}
     </select>
   </div>
