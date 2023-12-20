@@ -87,3 +87,15 @@ func (form *Form) IsFloat64(field string) {
 		form.Errors.Add(field, "This field must be a number")
 	}
 }
+
+func (form *Form) IsDatabaseID(field string) {
+	value := form.Get(field)
+	if value == "" {
+		return
+	}
+
+	_, errorParsingFloat := strconv.ParseUint(value, 10, 64)
+	if errorParsingFloat != nil {
+		form.Errors.Add(field, "This field is invalid")
+	}
+}
