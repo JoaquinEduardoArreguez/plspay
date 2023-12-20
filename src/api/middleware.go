@@ -78,14 +78,12 @@ func (app *Application) authenticate(next http.Handler) http.Handler {
 		}
 
 		var user models.User
-		dbError := app.userRepository.GetByID(uint(app.session.GetInt(r, "userID")), &user).Error
-
-		if errors.Is(dbError, gorm.ErrRecordNotFound) {
+		if err := app.userRepository.GetByID(uint(app.session.GetInt(r, "userID")), &user); errors.Is(err, gorm.ErrRecordNotFound) {
 			app.session.Remove(r, "userID")
 			next.ServeHTTP(w, r)
 			return
-		} else if dbError != nil {
-			app.serverError(w, dbError)
+		} else if err != nil {
+			app.serverError(w, err)
 			return
 		}
 
