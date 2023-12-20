@@ -22,25 +22,28 @@ func NewBalanceService(db *gorm.DB) *BalanceService {
 	return &BalanceService{BaseRepository: repositories.NewBaseRepository(db)}
 }
 
-// GetBalanceByUserAndGroup retrieves the balance for a user within a specific group.
-func (s *BalanceService) GetBalanceByUserAndGroup(userID, groupID uint) (*models.Balance, error) {
-	var balance models.Balance
-	if err := s.DB.Where("user = ? AND group = ?", userID, groupID).First(&balance).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, ErrBalanceNotFound
-	} else if err != nil {
-		return nil, err
-	}
-
-	return &balance, nil
-}
-
 // UpdateBalance updates the balance for a user within a specific group.
-func (s *BalanceService) UpdateBalance(currentBalance *models.Balance, newAmount float64) error {
+func (service *BalanceService) UpdateBalance(currentBalance *models.Balance, newAmount float64) error {
 	currentBalance.Amount = newAmount
 
-	if err := s.DB.Save(currentBalance).Error; err != nil {
+	if err := service.DB.Save(currentBalance).Error; err != nil {
 		return fmt.Errorf("%w: %v", ErrBalanceNotSaved, err)
 	}
 
 	return nil
+}
+
+// GetBalancesByUsersAndGroup retrieves balances for multiple users within a specific group.
+func (service *BalanceService) GetBalancesByUsersAndGroup(userIDs []uint, groupID uint) ([]*models.Balance, error) {
+	var balances []*models.Balance
+
+	queryConditions := map[string]interface{}{
+		"user":  userIDs,
+		"group": groupID,
+	}
+
+	if err := service.DB.Where(queryConditions).Find(&balances).Error; err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrBalanceNotFound, err)
+	}
+	return balances, nil
 }
