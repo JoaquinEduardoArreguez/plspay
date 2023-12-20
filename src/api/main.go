@@ -11,6 +11,7 @@ import (
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
 	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
+	"github.com/JoaquinEduardoArreguez/plspay/package/services"
 	"github.com/golangcollege/sessions"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,6 +30,8 @@ type Application struct {
 	userRepository    *repositories.UserRepository
 	expenseRepository *repositories.ExpenseRepository
 	templateCache     map[string]*template.Template
+	groupService      *services.GroupService
+	expenseService    *services.ExpenseService
 }
 
 func main() {
@@ -65,6 +68,8 @@ func main() {
 		userRepository:    repositories.NewUserRepository(database),
 		expenseRepository: repositories.NewExpenseRepository(database),
 		templateCache:     templateCache,
+		groupService:      services.NewGroupService(database),
+		expenseService:    services.NewExpenseService(database),
 	}
 
 	tlsConfig := &tls.Config{
@@ -102,6 +107,7 @@ func initDatabase(dsn string) (*gorm.DB, error) {
 		&models.User{},
 		&models.Expense{},
 		&models.Transaction{},
+		&models.Balance{},
 	)
 	if migrateDatabaseError != nil {
 		return nil, migrateDatabaseError
