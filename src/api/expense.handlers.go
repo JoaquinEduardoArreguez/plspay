@@ -20,12 +20,11 @@ func (app *Application) createExpenseForm(w http.ResponseWriter, r *http.Request
 	}
 
 	var group models.Group
-	dbError := app.groupRepository.GetByID(uint(groupId), &group, "Users").Error
-	if errors.Is(dbError, gorm.ErrRecordNotFound) {
+	if err := app.groupRepository.GetByID(uint(groupId), &group, "Users"); errors.Is(err, gorm.ErrRecordNotFound) {
 		app.notFound(w)
 		return
-	} else if dbError != nil {
-		app.serverError(w, dbError)
+	} else if err != nil {
+		app.serverError(w, err)
 		return
 	}
 
@@ -53,7 +52,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 	form := forms.New(r.PostForm)
 	form.Required("description", "amount", "select-participants", "select-owner")
 	form.MaxLength("description", 20)
-	form.MaxLength("select-owner", 20)
+	form.IsDatabaseID("select-owner")
 	form.MaxLength("amount", 5)
 	form.IsFloat64("amount")
 	form.MaxLength("select-participants", 100)
@@ -65,40 +64,25 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	var expenseOwner models.User
-	getOwnerByNameError := app.userRepository.GetByName(form.Get("select-owner"), &expenseOwner).Error
-	if getOwnerByNameError != nil {
-		app.clientError(w, http.StatusBadRequest)
-		return
+	amount, _ := strconv.ParseFloat(form.Get("amount"), 64)
+	ownerId, _ := strconv.Atoi(form.Get("select-owner"))
+
+	var participantsIds []uint
+	for _, participantId := range form.Values["select-participants"] {
+		id, _ := strconv.Atoi(participantId)
+		participantsIds = append(participantsIds, uint(id))
 	}
 
-	float64Amount, _ := strconv.ParseFloat(form.Get("amount"), 64)
+	_, errorCreatingExpense := app.expenseService.CreateExpense(
+		form.Get("description"),
+		amount,
+		uint(groupId),
+		uint(ownerId),
+		participantsIds,
+	)
 
-	participantsSlice := form.Values["select-participants"]
-	var participants []models.User
-	var participantsPtrs []*models.User
-	errorGettingParticipants := app.userRepository.FindByNames(participantsSlice, &participants).Error
-	if errors.Is(errorGettingParticipants, gorm.ErrRecordNotFound) {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	} else if errorGettingParticipants != nil {
-		app.serverError(w, errorGettingParticipants)
-		return
-	}
-
-	for _, participant := range participants {
-		tempParticipant := participant
-		participantsPtrs = append(participantsPtrs, &tempParticipant)
-	}
-
-	expense, errorConstructingExpense := models.NewExpense(form.Get("description"), float64Amount, uint(groupId), expenseOwner.ID, participantsPtrs)
-	if errorConstructingExpense != nil {
-		app.errorLog.Fatal(errorConstructingExpense)
-	}
-
-	insertExpenseError := app.expenseRepository.Create(expense).Error
-	if insertExpenseError != nil {
-		app.serverError(w, insertExpenseError)
+	if errorCreatingExpense != nil {
+		app.serverError(w, err)
 		return
 	}
 
