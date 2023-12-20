@@ -17,28 +17,28 @@ func NewBaseRepository(db *gorm.DB) *BaseRepository {
 	return &BaseRepository{DB: db}
 }
 
-func (r *BaseRepository) GetAll(entities interface{}) *gorm.DB {
-	return r.DB.Find(entities)
+func (r *BaseRepository) GetAll(entities interface{}) error {
+	return r.DB.Find(entities).Error
 }
 
-func (r *BaseRepository) GetByID(id uint, entity interface{}, relations ...string) *gorm.DB {
+func (r *BaseRepository) GetByID(id uint, entity interface{}, relations ...string) error {
 	query := r.DB.Model(entity).Where("id = ?", id)
 
 	for _, relation := range relations {
 		query = query.Preload(relation)
 	}
 
-	return query.First(entity)
+	return query.First(entity).Error
 }
 
-func (r *BaseRepository) Create(entity interface{}) *gorm.DB {
-	return r.DB.Create(entity)
+func (r *BaseRepository) Create(entity interface{}) error {
+	return r.DB.Create(entity).Error
 }
 
-func (r *BaseRepository) Update(entity interface{}) *gorm.DB {
-	return r.DB.Save(entity)
+func (r *BaseRepository) Update(entity interface{}) error {
+	return r.DB.Save(entity).Error
 }
 
-func (r *BaseRepository) Delete(id uint, entity interface{}) *gorm.DB {
-	return r.DB.Delete(entity, id)
+func (r *BaseRepository) Delete(id uint, entity interface{}) error {
+	return r.DB.Delete(entity, id).Error
 }

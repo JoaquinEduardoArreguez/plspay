@@ -24,8 +24,8 @@ func (r *UserRepository) GetByName(name string, entity interface{}) *gorm.DB {
 	return r.DB.Where("name = ?", name).First(entity)
 }
 
-func (r *UserRepository) FindByNames(names []string, users *[]models.User) *gorm.DB {
-	return r.DB.Where("name IN ?", names).Find(users)
+func (r *UserRepository) FindByNames(names []string, users *[]*models.User) error {
+	return r.DB.Where("name IN ?", names).Find(users).Error
 }
 
 func (r *UserRepository) GetByEmail(email string, user *models.User) *gorm.DB {
@@ -36,9 +36,8 @@ func (r *UserRepository) GetUserNames() ([]string, error) {
 	var users []models.User
 	var userNames []string
 
-	dbResponse := r.GetAll(&users)
-	if dbResponse.Error != nil {
-		return nil, dbResponse.Error
+	if err := r.GetAll(&users); err != nil {
+		return nil, err
 	}
 
 	for _, user := range users {
@@ -50,10 +49,11 @@ func (r *UserRepository) GetUserNames() ([]string, error) {
 
 func (r *UserRepository) GetUsers() ([]models.User, error) {
 	var users []models.User
-	dbResponse := r.GetAll(&users)
-	if dbResponse.Error != nil {
-		return nil, dbResponse.Error
+
+	if err := r.GetAll(&users); err != nil {
+		return nil, err
 	}
+
 	return users, nil
 }
 
@@ -75,18 +75,17 @@ func (r *UserRepository) Authenticate(email, password string) (int, error) {
 	return int(user.ID), nil
 }
 
-func (r *UserRepository) CreateUser(name, email, password string) (*gorm.DB, error) {
+func (r *UserRepository) CreateUser(name, email, password string) (*models.User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return nil, err
 	}
 
-	newUser := &models.User{Name: name, Email: email, Hashed_passwod: string(hashedPassword)}
+	user := &models.User{Name: name, Email: email, Hashed_passwod: string(hashedPassword)}
 
-	dbResponse := r.Create(newUser)
-	if dbResponse.Error != nil {
-		return nil, dbResponse.Error
+	if err := r.Create(user); err != nil {
+		return nil, err
 	}
 
-	return dbResponse, nil
+	return user, nil
 }
