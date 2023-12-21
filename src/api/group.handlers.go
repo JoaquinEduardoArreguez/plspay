@@ -63,7 +63,7 @@ func (app *Application) showGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	group := &models.Group{}
-	if err := app.groupRepository.GetByID(uint(id), group, "Users", "Expenses.Owner", "Expenses.Participants", "Transactions"); errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := app.groupRepository.GetByID(uint(id), group, "Users", "Expenses.Owner", "Expenses.Participants", "Transactions.Sender", "Transactions.Receiver"); errors.Is(err, gorm.ErrRecordNotFound) {
 		app.notFound(w)
 		return
 	} else if err != nil {
@@ -94,4 +94,22 @@ func (app *Application) showGroups(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "groups.page.template.html", &templateData{
 		GroupDtos: userGroupsDtos,
 	})
+}
+
+func (app *Application) calculateTransactions(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	transactions, errorCalculatingTransactions := app.groupService.CreateTransactions(uint(id))
+	if errorCalculatingTransactions != nil {
+		app.serverError(w, errorCalculatingTransactions)
+		return
+	}
+
+	app.session.Put(r, "flash", fmt.Sprintf("%d transactions calculated", len(transactions)))
+
+	http.Redirect(w, r, fmt.Sprintf("/groups/%d", id), http.StatusSeeOther)
 }
