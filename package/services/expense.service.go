@@ -26,8 +26,17 @@ func NewExpenseService(db *gorm.DB) *ExpenseService {
 // updateUserBalances updates user balances based on the provided expense.
 func (service *ExpenseService) updateUserBalances(expense models.Expense) error {
 	var participantsIds []uint
+	ownerIsParticipant := false
+
 	for _, participant := range expense.Participants {
 		participantsIds = append(participantsIds, participant.ID)
+		if expense.OwnerID == participant.ID {
+			ownerIsParticipant = true
+		}
+	}
+
+	if !ownerIsParticipant {
+		participantsIds = append(participantsIds, expense.OwnerID)
 	}
 
 	usersBalances, errGettingUserBalances := service.balanceService.GetBalancesByUsersAndGroup(participantsIds, expense.Group)
@@ -37,19 +46,19 @@ func (service *ExpenseService) updateUserBalances(expense models.Expense) error 
 
 	share := utils.RoundFloat(expense.Amount/float64(len(expense.Participants)), 2)
 
-	var ownerIndexInParticipants int
+	var ownerBalanceIndex int
 	for i, userBalance := range usersBalances {
 		if userBalance.User == expense.OwnerID {
-			ownerIndexInParticipants = i
+			ownerBalanceIndex = i
 		} else {
 			userBalance.Amount = utils.RoundFloat(userBalance.Amount-share, 2)
 		}
 	}
 
-	if ownerIndexInParticipants < len(usersBalances) {
-		usersBalances[ownerIndexInParticipants].Amount = utils.RoundFloat(usersBalances[ownerIndexInParticipants].Amount+share*float64(len(usersBalances)-1), 2)
+	if ownerIsParticipant {
+		usersBalances[ownerBalanceIndex].Amount = utils.RoundFloat(usersBalances[ownerBalanceIndex].Amount+share*float64(len(usersBalances)-1), 2)
 	} else {
-		usersBalances[ownerIndexInParticipants].Amount = utils.RoundFloat(usersBalances[ownerIndexInParticipants].Amount+expense.Amount, 2)
+		usersBalances[ownerBalanceIndex].Amount = utils.RoundFloat(usersBalances[ownerBalanceIndex].Amount+expense.Amount, 2)
 	}
 
 	if err := service.balanceService.Update(&usersBalances); err != nil {
