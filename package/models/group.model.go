@@ -15,7 +15,7 @@ type Group struct {
 	Users        []*User       `gorm:"many2many:user_groups;"`
 	Expenses     []Expense     `gorm:"foreignKey:Group"`
 	Transactions []Transaction `gorm:"foreignKey:Group"`
-	Balances     []Balance     `gorm:"foreignKey:Group"`
+	Balances     []*Balance    `gorm:"foreignKey:Group"`
 }
 
 type GroupDTO struct {
