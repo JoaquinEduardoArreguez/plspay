@@ -1,4 +1,5 @@
 {{template "base" .}} {{define "title"}}{{.Group.Name}}{{end}} {{define "body"}}
+<input type="hidden" id="csrf_token" value="{{.CsrfToken}}" />
 {{with .Group}}
 <div class="group">
   <div class="metadata">
@@ -23,6 +24,9 @@
       <th>{{.Amount}}</th>
       <th>{{.Owner.Name}}</th>
       <th>{{range .Participants}}{{.Name}},{{end}}</th>
+      <td>
+        <button onclick="deleteExpense({{$.Group.ID}},{{.ID}})">⛔️</button>
+      </td>
     </tr>
     {{end}}
   </table>
@@ -67,4 +71,30 @@
     <div><time>Last updated on {{humanDate .UpdatedAt}}</time></div>
   </div>
 </div>
-{{end}} {{end}}
+{{end}}
+
+<script>
+  async function deleteExpense(groupId, expenseId) {
+    const csrfToken = document.getElementById("csrf_token").value;
+
+    await fetch(`/groups/${groupId}/expenses/${expenseId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          window.location.href = `/groups/${groupId}`;
+        } else {
+          alert("Failed to delete expense");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+</script>
+
+{{end}}

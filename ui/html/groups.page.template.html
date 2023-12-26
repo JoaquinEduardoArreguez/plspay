@@ -1,4 +1,5 @@
 {{template "base" .}} {{define "title"}}Groups{{end}} {{define "body"}}
+<input type="hidden" id="csrf_token" value="{{.CsrfToken}}" />
 <h2>Groups</h2>
 {{if .GroupDtos}}
 <table>
@@ -12,6 +13,7 @@
     <td><a href="/groups/{{.ID}}">{{.Name}}</a></td>
     <td>{{.Date}}</td>
     <td>{{.CreatedAt}}</td>
+    <td><button onclick="deleteGroup({{.ID}})">⛔️</button></td>
   </tr>
   {{end}}
 </table>
@@ -24,4 +26,30 @@
     <button>New Group</button>
   </form>
 </div>
+
+<script>
+  async function deleteGroup(groupId) {
+    // Get the CSRF token from the hidden input
+    const csrfToken = document.getElementById("csrf_token").value;
+
+    await fetch(`/groups/${groupId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          window.location.href = "/groups";
+        } else {
+          alert("Failed to delete group");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+</script>
+
 {{end}}

@@ -91,3 +91,7 @@ func (service *ExpenseService) CreateExpense(description string, amount float64,
 
 	return expense, nil
 }
+
+func (service *ExpenseService) DeleteExpense(expenseID uint) error {
+	return service.expenseRepository.Delete(expenseID, &models.Expense{})
+}

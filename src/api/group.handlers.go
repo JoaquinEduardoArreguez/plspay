@@ -113,3 +113,23 @@ func (app *Application) calculateTransactions(w http.ResponseWriter, r *http.Req
 
 	http.Redirect(w, r, fmt.Sprintf("/groups/%d", id), http.StatusSeeOther)
 }
+
+func (app *Application) deleteGroup(w http.ResponseWriter, r *http.Request) {
+	groupId, err := strconv.Atoi(r.URL.Query().Get(":id"))
+	if err != nil || groupId < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		app.session.Put(r, "flash", "Error deleting group")
+		http.Redirect(w, r, "/groups", http.StatusSeeOther)
+	}
+
+	if err := app.groupService.DeleteGroup(uint(groupId)); err != nil {
+		app.session.Put(r, "flash", "Error deleting group")
+		http.Redirect(w, r, "/groups", http.StatusSeeOther)
+	}
+
+	http.Redirect(w, r, "/groups", http.StatusSeeOther)
+}

@@ -90,3 +90,29 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
 }
+
+func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
+	groupId, err := strconv.Atoi(r.URL.Query().Get(":groupId"))
+	if err != nil || groupId < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	expenseId, err := strconv.Atoi(r.URL.Query().Get(":expenseId"))
+	if err != nil || expenseId < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		app.session.Put(r, "flash", "Error deleting expense")
+		http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
+	}
+
+	if err := app.expenseService.DeleteExpense(uint(expenseId)); err != nil {
+		app.session.Put(r, "flash", "Error deleting expense")
+		http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
+}

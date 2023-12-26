@@ -90,7 +90,6 @@ func (service *GroupService) CreateTransactions(groupId uint) ([]*models.Transac
 }
 
 func (service *GroupService) generateTransactions(remainingBalances []*models.Balance, transactions []*models.Transaction) []*models.Transaction {
-
 	if !service.balancesSettled(remainingBalances) {
 		var sender, receiver *models.Balance
 		var minBalance, maxBalance float64
@@ -137,4 +136,8 @@ func (service *GroupService) balancesSettled(balances []*models.Balance) bool {
 
 func (service *GroupService) clearTransactions(groupID uint) error {
 	return service.transactionRepository.DB.Where(models.Transaction{Group: groupID}).Delete(&models.Transaction{}).Error
+}
+
+func (service *GroupService) DeleteGroup(groupID uint) error {
+	return service.groupRepository.Delete(groupID, &models.Group{})
 }
