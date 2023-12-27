@@ -121,14 +121,8 @@ func (app *Application) deleteGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
-		app.session.Put(r, "flash", "Error deleting group")
-		http.Redirect(w, r, "/groups", http.StatusSeeOther)
-	}
-
 	if err := app.groupService.DeleteGroup(uint(groupId)); err != nil {
 		app.session.Put(r, "flash", "Error deleting group")
-		http.Redirect(w, r, "/groups", http.StatusSeeOther)
 	}
 
 	http.Redirect(w, r, "/groups", http.StatusSeeOther)
