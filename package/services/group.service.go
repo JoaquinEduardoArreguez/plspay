@@ -18,6 +18,7 @@ var (
 )
 
 type GroupService struct {
+	*repositories.BaseRepository
 	groupRepository       *repositories.GroupRepository
 	userRepository        *repositories.UserRepository
 	transactionRepository *repositories.TransactionRepository
@@ -30,6 +31,7 @@ func NewGroupService(db *gorm.DB) *GroupService {
 		userRepository:        repositories.NewUserRepository(db),
 		transactionRepository: repositories.NewTransactionRepository(db),
 		balanceService:        NewBalanceService(db),
+		BaseRepository:        repositories.NewBaseRepository(db),
 	}
 }
 
@@ -50,31 +52,61 @@ func (service *GroupService) CreateGroup(name string, owner *models.User, partic
 		return nil, ErrGroupNotCreated
 	}
 
-	userBalances := make([]*models.Balance, len(participants))
-	for i, participant := range participants {
-		userBalances[i] = &models.Balance{User: participant.ID, Group: group.ID, Amount: 0}
-	}
-
-	if err := service.balanceService.Create(&userBalances); err != nil {
-		return nil, err
-	}
-
 	return group, nil
 }
 
 func (service *GroupService) CreateTransactions(groupId uint) ([]*models.Transaction, error) {
-	if err := service.clearTransactions(groupId); err != nil {
-		return nil, err
-	}
-
-	group := &models.Group{}
-	if err := service.groupRepository.GetByID(groupId, &group, "Balances"); errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, ErrGroupNotFound
-	} else if err != nil {
-		return nil, err
-	}
-
 	var transactions []*models.Transaction
+
+	//Get group by ID
+	var group models.Group
+	if err := service.DB.Preload("Users").Preload("Expenses").Preload("Expenses.Participants").First(&group, groupId).Error; err != nil {
+		return nil, err
+	}
+
+	if len(group.Expenses) == 0 {
+		return transactions, nil
+	}
+
+	usersBalances := make([]*models.Balance, len(group.Users))
+	for i, participant := range group.Users {
+		usersBalances[i] = &models.Balance{User: participant.ID, Group: group.ID, Amount: 0}
+	}
+
+	dbTransaction := service.DB.Begin()
+
+	// Delete prev transactions, if applicable
+	if err := dbTransaction.Where("\"group\" = ?", groupId).Delete(&models.Transaction{}).Error; err != nil {
+		dbTransaction.Rollback()
+		return nil, err
+	}
+
+	// Delete prev balances, if applicable
+	if err := dbTransaction.Where("\"group\" = ?", groupId).Delete(&models.Balance{}).Error; err != nil {
+		dbTransaction.Rollback()
+		return nil, err
+	}
+
+	if err := dbTransaction.Create(&usersBalances).Error; err != nil {
+		dbTransaction.Rollback()
+		return nil, err
+	}
+
+	if err := dbTransaction.Commit().Error; err != nil {
+		dbTransaction.Rollback()
+		return nil, err
+	}
+
+	for _, expense := range group.Expenses {
+		if err := service.updateUserBalances(expense); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := service.DB.Preload("Balances").First(&group, groupId).Error; err != nil {
+		return nil, err
+	}
+
 	transactions = service.generateTransactions(group.Balances, transactions)
 
 	if len(transactions) > 0 {
@@ -134,10 +166,69 @@ func (service *GroupService) balancesSettled(balances []*models.Balance) bool {
 	return true
 }
 
-func (service *GroupService) clearTransactions(groupID uint) error {
-	return service.transactionRepository.DB.Where(models.Transaction{Group: groupID}).Delete(&models.Transaction{}).Error
+func (service *GroupService) DeleteGroup(groupID uint) error {
+	dbTransaction := service.groupRepository.DB.Begin()
+
+	if err := dbTransaction.Where("\"group\" = ?", groupID).Delete(&models.Transaction{}).Error; err != nil {
+		dbTransaction.Rollback()
+	}
+
+	if err := dbTransaction.Where("\"group\" = ?", groupID).Delete(&models.Balance{}).Error; err != nil {
+		dbTransaction.Rollback()
+	}
+
+	if err := dbTransaction.Where("\"group_id\" = ?", groupID).Delete(&models.Expense{}).Error; err != nil {
+		dbTransaction.Rollback()
+	}
+
+	if err := dbTransaction.Delete(&models.Group{}, groupID).Error; err != nil {
+		dbTransaction.Rollback()
+	}
+
+	return dbTransaction.Commit().Error
 }
 
-func (service *GroupService) DeleteGroup(groupID uint) error {
-	return service.groupRepository.Delete(groupID, &models.Group{})
+// updateUserBalances updates user balances based on the provided expense.
+func (service *GroupService) updateUserBalances(expense models.Expense) error {
+	var participantsIds []uint
+	ownerIsParticipant := false
+
+	for _, participant := range expense.Participants {
+		participantsIds = append(participantsIds, participant.ID)
+		if expense.OwnerID == participant.ID {
+			ownerIsParticipant = true
+		}
+	}
+
+	if !ownerIsParticipant {
+		participantsIds = append(participantsIds, expense.OwnerID)
+	}
+
+	usersBalances, errGettingUserBalances := service.balanceService.GetBalancesByUsersAndGroup(participantsIds, expense.GroupID)
+	if errGettingUserBalances != nil {
+		return errGettingUserBalances
+	}
+
+	share := utils.RoundFloat(expense.Amount/float64(len(expense.Participants)), 2)
+
+	var ownerBalanceIndex int
+	for i, userBalance := range usersBalances {
+		if userBalance.User == expense.OwnerID {
+			ownerBalanceIndex = i
+		} else {
+			userBalance.Amount = utils.RoundFloat(userBalance.Amount-share, 2)
+		}
+	}
+
+	if ownerIsParticipant {
+		usersBalances[ownerBalanceIndex].Amount = utils.RoundFloat(usersBalances[ownerBalanceIndex].Amount+share*float64(len(usersBalances)-1), 2)
+	} else {
+		usersBalances[ownerBalanceIndex].Amount = utils.RoundFloat(usersBalances[ownerBalanceIndex].Amount+expense.Amount, 2)
+	}
+
+	if err := service.balanceService.Update(&usersBalances); err != nil {
+		return err
+	}
+
+	return nil
 }
