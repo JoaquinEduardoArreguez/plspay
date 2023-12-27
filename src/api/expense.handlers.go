@@ -104,14 +104,18 @@ func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
-		app.session.Put(r, "flash", "Error deleting expense")
-		http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
+	dbTransaction := app.baseRepository.DB.Begin()
+
+	if err := dbTransaction.Where("\"group\" = ?", groupId).Delete(&models.Transaction{}).Error; err != nil {
+		dbTransaction.Rollback()
 	}
 
-	if err := app.expenseService.DeleteExpense(uint(expenseId)); err != nil {
+	if err := dbTransaction.Delete(&models.Expense{}, expenseId).Error; err != nil {
+		dbTransaction.Rollback()
+	}
+
+	if err := dbTransaction.Commit().Error; err != nil {
 		app.session.Put(r, "flash", "Error deleting expense")
-		http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/groups/%d", groupId), http.StatusSeeOther)
