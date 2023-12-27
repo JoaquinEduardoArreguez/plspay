@@ -22,7 +22,6 @@ func NewBalanceService(db *gorm.DB) *BalanceService {
 	return &BalanceService{BaseRepository: repositories.NewBaseRepository(db)}
 }
 
-// UpdateBalance updates the balance for a user within a specific group.
 func (service *BalanceService) UpdateBalance(currentBalance *models.Balance, newAmount float64) error {
 	currentBalance.Amount = newAmount
 
@@ -33,7 +32,6 @@ func (service *BalanceService) UpdateBalance(currentBalance *models.Balance, new
 	return nil
 }
 
-// GetBalancesByUsersAndGroup retrieves balances for multiple users within a specific group.
 func (service *BalanceService) GetBalancesByUsersAndGroup(userIDs []uint, groupID uint) ([]*models.Balance, error) {
 	var balances []*models.Balance
 
