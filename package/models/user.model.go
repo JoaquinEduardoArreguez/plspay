@@ -13,7 +13,7 @@ type User struct {
 	Email                string        `gorm:"unique"`
 	Hashed_passwod       string        `gorm:"size:60"`
 	Groups               []*Group      `gorm:"many2many:user_groups;"`
-	Expenses             []Expense     `gorm:"foreignKey:Owner"`
+	Expenses             []Expense     `gorm:"foreignKey:OwnerID"`
 	ParticipatedExpenses []*Expense    `gorm:"many2many:expense_participants;"`
 	SenderTransactions   []Transaction `gorm:"foreignkey:SenderUserID"`
 	ReceiverTransactions []Transaction `gorm:"foreignkey:ReceiverUserID"`

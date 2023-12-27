@@ -10,7 +10,7 @@ type Expense struct {
 	gorm.Model
 	Description  string
 	Amount       float64
-	Group        uint
+	GroupID      uint
 	OwnerID      uint
 	Owner        User    `gorm:"foreignKey:OwnerID"`
 	Participants []*User `gorm:"many2many:expense_participants;"`
@@ -42,6 +42,6 @@ func NewExpense(description string, amount float64, groupID uint, ownerID uint, 
 		Amount:       amount,
 		Participants: participants,
 		OwnerID:      ownerID,
-		Group:        groupID,
+		GroupID:      groupID,
 	}, nil
 }

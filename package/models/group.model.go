@@ -13,7 +13,7 @@ type Group struct {
 	Name         string
 	Date         time.Time
 	Users        []*User       `gorm:"many2many:user_groups;"`
-	Expenses     []Expense     `gorm:"foreignKey:Group"`
+	Expenses     []Expense     `gorm:"foreignKey:GroupID"`
 	Transactions []Transaction `gorm:"foreignKey:Group"`
 	Balances     []*Balance    `gorm:"foreignKey:Group"`
 }
