@@ -32,6 +32,7 @@ type Application struct {
 	templateCache     map[string]*template.Template
 	groupService      *services.GroupService
 	expenseService    *services.ExpenseService
+	baseRepository    *repositories.BaseRepository
 }
 
 func main() {
@@ -70,6 +71,7 @@ func main() {
 		templateCache:     templateCache,
 		groupService:      services.NewGroupService(database),
 		expenseService:    services.NewExpenseService(database),
+		baseRepository:    repositories.NewBaseRepository(database),
 	}
 
 	tlsConfig := &tls.Config{

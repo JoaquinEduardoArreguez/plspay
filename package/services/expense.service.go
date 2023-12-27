@@ -10,7 +10,6 @@ import (
 
 type ExpenseService struct {
 	*repositories.BaseRepository
-	balanceService    *BalanceService
 	expenseRepository *repositories.ExpenseRepository
 	userRepository    *repositories.UserRepository
 }
@@ -18,7 +17,6 @@ type ExpenseService struct {
 func NewExpenseService(db *gorm.DB) *ExpenseService {
 	return &ExpenseService{
 		BaseRepository:    repositories.NewBaseRepository(db),
-		balanceService:    NewBalanceService(db),
 		expenseRepository: repositories.NewExpenseRepository(db),
 		userRepository:    repositories.NewUserRepository(db),
 	}
