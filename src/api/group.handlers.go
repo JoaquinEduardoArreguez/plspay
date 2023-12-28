@@ -56,14 +56,20 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) showGroup(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
-	if err != nil || id < 1 {
+	groupId, err := strconv.Atoi(r.URL.Query().Get(":id"))
+	if err != nil || groupId < 1 {
 		http.NotFound(w, r)
 		return
 	}
 
-	group := &models.Group{}
-	if err := app.groupRepository.GetByID(uint(id), group, "Users", "Expenses.Owner", "Expenses.Participants", "Transactions.Sender", "Transactions.Receiver"); errors.Is(err, gorm.ErrRecordNotFound) {
+	var group models.Group
+	if err := app.DB.
+		Preload("Users").
+		Preload("Expenses.Owner").
+		Preload("Expenses.Participants").
+		Preload("Transactions.Sender").
+		Preload("Transactions.Receiver").
+		First(&group, groupId).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		app.notFound(w)
 		return
 	} else if err != nil {
@@ -71,7 +77,7 @@ func (app *Application) showGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, r, "showGroup.page.template.html", &templateData{Group: group})
+	app.render(w, r, "showGroup.page.template.html", &templateData{Group: &group})
 }
 
 func (app *Application) showGroups(w http.ResponseWriter, r *http.Request) {

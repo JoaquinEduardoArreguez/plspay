@@ -19,15 +19,13 @@ var (
 
 type GroupService struct {
 	*repositories.BaseRepository
-	groupRepository *repositories.GroupRepository
-	balanceService  *BalanceService
+	balanceService *BalanceService
 }
 
 func NewGroupService(db *gorm.DB) *GroupService {
 	return &GroupService{
-		groupRepository: repositories.NewGroupRepository(db),
-		balanceService:  NewBalanceService(db),
-		BaseRepository:  repositories.NewBaseRepository(db),
+		balanceService: NewBalanceService(db),
+		BaseRepository: repositories.NewBaseRepository(db),
 	}
 }
 
@@ -45,7 +43,7 @@ func (service *GroupService) CreateGroup(name string, owner *models.User, partic
 		return nil, newGroupError
 	}
 
-	if err := service.groupRepository.Create(&group); err != nil {
+	if err := service.DB.Create(&group).Error; err != nil {
 		return nil, ErrGroupNotCreated
 	}
 
@@ -164,7 +162,7 @@ func (service *GroupService) balancesSettled(balances []*models.Balance) bool {
 }
 
 func (service *GroupService) DeleteGroup(groupID uint) error {
-	dbTransaction := service.groupRepository.DB.Begin()
+	dbTransaction := service.DB.Begin()
 
 	if err := dbTransaction.Where("\"group\" = ?", groupID).Delete(&models.Transaction{}).Error; err != nil {
 		dbTransaction.Rollback()

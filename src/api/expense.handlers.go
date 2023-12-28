@@ -20,7 +20,8 @@ func (app *Application) createExpenseForm(w http.ResponseWriter, r *http.Request
 	}
 
 	var group models.Group
-	if err := app.groupRepository.GetByID(uint(groupId), &group, "Users"); errors.Is(err, gorm.ErrRecordNotFound) {
+
+	if err := app.DB.Preload("Users").First(&group, groupId).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		app.notFound(w)
 		return
 	} else if err != nil {
