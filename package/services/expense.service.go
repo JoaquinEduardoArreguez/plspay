@@ -11,20 +11,18 @@ import (
 type ExpenseService struct {
 	*repositories.BaseRepository
 	expenseRepository *repositories.ExpenseRepository
-	userRepository    *repositories.UserRepository
 }
 
 func NewExpenseService(db *gorm.DB) *ExpenseService {
 	return &ExpenseService{
 		BaseRepository:    repositories.NewBaseRepository(db),
 		expenseRepository: repositories.NewExpenseRepository(db),
-		userRepository:    repositories.NewUserRepository(db),
 	}
 }
 
 func (service *ExpenseService) CreateExpense(description string, amount float64, groupID uint, ownerID uint, participantsIDs []uint) (*models.Expense, error) {
 	var participants []*models.User
-	if err := service.userRepository.DB.Find(&participants, participantsIDs).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := service.DB.Find(&participants, participantsIDs).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	} else if err != nil {
 		return nil, err

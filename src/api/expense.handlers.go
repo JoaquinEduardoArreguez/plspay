@@ -104,7 +104,7 @@ func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbTransaction := app.baseRepository.DB.Begin()
+	dbTransaction := app.DB.Begin()
 
 	if err := dbTransaction.Where("\"group\" = ?", groupId).Delete(&models.Transaction{}).Error; err != nil {
 		dbTransaction.Rollback()

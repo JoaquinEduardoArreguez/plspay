@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
-	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
+	"github.com/JoaquinEduardoArreguez/plspay/package/services"
 	"gorm.io/gorm"
 )
 
@@ -32,7 +32,7 @@ func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := app.userRepository.CreateUser(form.Get("name"), form.Get("email"), form.Get("password"))
+	_, err := app.userService.CreateUser(form.Get("name"), form.Get("email"), form.Get("password"))
 
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		form.Errors.Add("email", "Email address already in use")
@@ -61,8 +61,8 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 
 	form := forms.New(r.PostForm)
 
-	id, err := app.userRepository.Authenticate(form.Get("email"), form.Get("password"))
-	if err == repositories.ErrInvalidCredentials {
+	id, err := app.userService.Authenticate(form.Get("email"), form.Get("password"))
+	if err == services.ErrInvalidCredentials {
 		form.Errors.Add("generic", "Invalid credentials")
 		app.render(w, r, "login.page.template.html", &templateData{Form: form})
 		return

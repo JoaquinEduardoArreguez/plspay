@@ -78,7 +78,8 @@ func (app *Application) showGroups(w http.ResponseWriter, r *http.Request) {
 	var userGroupsDtos []*models.GroupDTO
 
 	user := app.authenticatedUser(r)
-	if err := app.userRepository.GetByID(user.ID, user, "Groups"); errors.Is(err, gorm.ErrRecordNotFound) {
+
+	if err := app.DB.Preload("Groups").First(user, user.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		app.notFound(w)
 		return
 	} else if err != nil {

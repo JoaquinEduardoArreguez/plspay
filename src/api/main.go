@@ -27,12 +27,12 @@ type Application struct {
 	infoLog           *log.Logger
 	session           *sessions.Session
 	groupRepository   *repositories.GroupRepository
-	userRepository    *repositories.UserRepository
 	expenseRepository *repositories.ExpenseRepository
 	templateCache     map[string]*template.Template
 	groupService      *services.GroupService
 	expenseService    *services.ExpenseService
-	baseRepository    *repositories.BaseRepository
+	userService       *services.UserService
+	*repositories.BaseRepository
 }
 
 func main() {
@@ -66,12 +66,12 @@ func main() {
 		infoLog:           infoLog,
 		session:           session,
 		groupRepository:   repositories.NewGroupRepository(database),
-		userRepository:    repositories.NewUserRepository(database),
 		expenseRepository: repositories.NewExpenseRepository(database),
 		templateCache:     templateCache,
 		groupService:      services.NewGroupService(database),
 		expenseService:    services.NewExpenseService(database),
-		baseRepository:    repositories.NewBaseRepository(database),
+		userService:       services.NewUserService(database),
+		BaseRepository:    repositories.NewBaseRepository(database),
 	}
 
 	tlsConfig := &tls.Config{

@@ -20,7 +20,6 @@ var (
 type GroupService struct {
 	*repositories.BaseRepository
 	groupRepository       *repositories.GroupRepository
-	userRepository        *repositories.UserRepository
 	transactionRepository *repositories.TransactionRepository
 	balanceService        *BalanceService
 }
@@ -28,7 +27,6 @@ type GroupService struct {
 func NewGroupService(db *gorm.DB) *GroupService {
 	return &GroupService{
 		groupRepository:       repositories.NewGroupRepository(db),
-		userRepository:        repositories.NewUserRepository(db),
 		transactionRepository: repositories.NewTransactionRepository(db),
 		balanceService:        NewBalanceService(db),
 		BaseRepository:        repositories.NewBaseRepository(db),
@@ -37,7 +35,8 @@ func NewGroupService(db *gorm.DB) *GroupService {
 
 func (service *GroupService) CreateGroup(name string, owner *models.User, participantNames []string, date time.Time) (*models.Group, error) {
 	var participants []*models.User
-	if err := service.userRepository.FindByNames(participantNames, &participants); errors.Is(err, gorm.ErrRecordNotFound) {
+
+	if err := service.DB.Where("name IN ?", participantNames).Find(&participants).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	} else if err != nil {
 		return nil, err
