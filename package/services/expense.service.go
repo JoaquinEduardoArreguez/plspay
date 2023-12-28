@@ -10,13 +10,11 @@ import (
 
 type ExpenseService struct {
 	*repositories.BaseRepository
-	expenseRepository *repositories.ExpenseRepository
 }
 
 func NewExpenseService(db *gorm.DB) *ExpenseService {
 	return &ExpenseService{
-		BaseRepository:    repositories.NewBaseRepository(db),
-		expenseRepository: repositories.NewExpenseRepository(db),
+		BaseRepository: repositories.NewBaseRepository(db),
 	}
 }
 
@@ -33,7 +31,7 @@ func (service *ExpenseService) CreateExpense(description string, amount float64,
 		return nil, newExpenseError
 	}
 
-	if err := service.expenseRepository.Create(expense); err != nil {
+	if err := service.DB.Create(expense).Error; err != nil {
 		return nil, err
 	}
 
