@@ -19,17 +19,15 @@ var (
 
 type GroupService struct {
 	*repositories.BaseRepository
-	groupRepository       *repositories.GroupRepository
-	transactionRepository *repositories.TransactionRepository
-	balanceService        *BalanceService
+	groupRepository *repositories.GroupRepository
+	balanceService  *BalanceService
 }
 
 func NewGroupService(db *gorm.DB) *GroupService {
 	return &GroupService{
-		groupRepository:       repositories.NewGroupRepository(db),
-		transactionRepository: repositories.NewTransactionRepository(db),
-		balanceService:        NewBalanceService(db),
-		BaseRepository:        repositories.NewBaseRepository(db),
+		groupRepository: repositories.NewGroupRepository(db),
+		balanceService:  NewBalanceService(db),
+		BaseRepository:  repositories.NewBaseRepository(db),
 	}
 }
 
@@ -109,7 +107,7 @@ func (service *GroupService) CreateTransactions(groupId uint) ([]*models.Transac
 	transactions = service.generateTransactions(group.Balances, transactions)
 
 	if len(transactions) > 0 {
-		if err := service.transactionRepository.DB.Clauses(clause.OnConflict{
+		if err := service.DB.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}},
 			DoUpdates: clause.AssignmentColumns([]string{"amount"}),
 		}).Create(&transactions).Error; err != nil {
