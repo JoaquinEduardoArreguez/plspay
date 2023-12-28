@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
-	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
 	"github.com/JoaquinEduardoArreguez/plspay/package/services"
 	"github.com/golangcollege/sessions"
 	"gorm.io/driver/postgres"
@@ -30,7 +29,7 @@ type Application struct {
 	groupService   *services.GroupService
 	expenseService *services.ExpenseService
 	userService    *services.UserService
-	*repositories.BaseRepository
+	DB             *gorm.DB
 }
 
 func main() {
@@ -67,7 +66,7 @@ func main() {
 		groupService:   services.NewGroupService(database),
 		expenseService: services.NewExpenseService(database),
 		userService:    services.NewUserService(database),
-		BaseRepository: repositories.NewBaseRepository(database),
+		DB:             database,
 	}
 
 	tlsConfig := &tls.Config{

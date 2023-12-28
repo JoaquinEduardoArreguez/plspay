@@ -7,7 +7,6 @@ import (
 
 	utils "github.com/JoaquinEduardoArreguez/plspay/package"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
-	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -18,14 +17,14 @@ var (
 )
 
 type GroupService struct {
-	*repositories.BaseRepository
+	DB             *gorm.DB
 	balanceService *BalanceService
 }
 
-func NewGroupService(db *gorm.DB) *GroupService {
+func NewGroupService(database *gorm.DB) *GroupService {
 	return &GroupService{
-		balanceService: NewBalanceService(db),
-		BaseRepository: repositories.NewBaseRepository(db),
+		DB:             database,
+		balanceService: NewBalanceService(database),
 	}
 }
 
@@ -221,7 +220,7 @@ func (service *GroupService) updateUserBalances(expense models.Expense) error {
 		usersBalances[ownerBalanceIndex].Amount = utils.RoundFloat(usersBalances[ownerBalanceIndex].Amount+expense.Amount, 2)
 	}
 
-	if err := service.balanceService.Update(&usersBalances); err != nil {
+	if err := service.DB.Save(&usersBalances).Error; err != nil {
 		return err
 	}
 

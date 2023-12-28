@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
-	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -15,11 +14,11 @@ var (
 )
 
 type UserService struct {
-	*repositories.BaseRepository
+	DB *gorm.DB
 }
 
-func NewUserService(db *gorm.DB) *UserService {
-	return &UserService{BaseRepository: repositories.NewBaseRepository(db)}
+func NewUserService(database *gorm.DB) *UserService {
+	return &UserService{DB: database}
 }
 
 func (service *UserService) CreateUser(name, email, password string) (*models.User, error) {

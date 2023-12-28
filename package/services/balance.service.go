@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
-	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
 	"gorm.io/gorm"
 )
 
@@ -15,11 +14,11 @@ var (
 )
 
 type BalanceService struct {
-	*repositories.BaseRepository
+	DB *gorm.DB
 }
 
-func NewBalanceService(db *gorm.DB) *BalanceService {
-	return &BalanceService{BaseRepository: repositories.NewBaseRepository(db)}
+func NewBalanceService(database *gorm.DB) *BalanceService {
+	return &BalanceService{DB: database}
 }
 
 func (service *BalanceService) UpdateBalance(currentBalance *models.Balance, newAmount float64) error {

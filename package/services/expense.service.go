@@ -4,18 +4,15 @@ import (
 	"errors"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
-	"github.com/JoaquinEduardoArreguez/plspay/package/repositories"
 	"gorm.io/gorm"
 )
 
 type ExpenseService struct {
-	*repositories.BaseRepository
+	DB *gorm.DB
 }
 
-func NewExpenseService(db *gorm.DB) *ExpenseService {
-	return &ExpenseService{
-		BaseRepository: repositories.NewBaseRepository(db),
-	}
+func NewExpenseService(database *gorm.DB) *ExpenseService {
+	return &ExpenseService{DB: database}
 }
 
 func (service *ExpenseService) CreateExpense(description string, amount float64, groupID uint, ownerID uint, participantsIDs []uint) (*models.Expense, error) {
