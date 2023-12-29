@@ -34,3 +34,17 @@ func (service *ExpenseService) CreateExpense(description string, amount float64,
 
 	return expense, nil
 }
+
+func (service *ExpenseService) DeleteExpense(groupID, expenseID int) error {
+	dbTransaction := service.DB.Begin()
+
+	if err := dbTransaction.Where("\"group\" = ?", groupID).Delete(&models.Transaction{}).Error; err != nil {
+		dbTransaction.Rollback()
+	}
+
+	if err := dbTransaction.Delete(&models.Expense{}, expenseID).Error; err != nil {
+		dbTransaction.Rollback()
+	}
+
+	return dbTransaction.Commit().Error
+}

@@ -21,7 +21,7 @@ func (app *Application) createExpenseForm(w http.ResponseWriter, r *http.Request
 
 	var group models.Group
 
-	if err := app.DB.Preload("Users").First(&group, groupId).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := app.groupService.GetGroupById(&group, groupId, "Users"); errors.Is(err, gorm.ErrRecordNotFound) {
 		app.notFound(w)
 		return
 	} else if err != nil {
@@ -105,17 +105,7 @@ func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbTransaction := app.DB.Begin()
-
-	if err := dbTransaction.Where("\"group\" = ?", groupId).Delete(&models.Transaction{}).Error; err != nil {
-		dbTransaction.Rollback()
-	}
-
-	if err := dbTransaction.Delete(&models.Expense{}, expenseId).Error; err != nil {
-		dbTransaction.Rollback()
-	}
-
-	if err := dbTransaction.Commit().Error; err != nil {
+	if err := app.expenseService.DeleteExpense(groupId, expenseId); err != nil {
 		app.session.Put(r, "flash", "Error deleting expense")
 	}
 
