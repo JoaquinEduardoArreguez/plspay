@@ -28,6 +28,16 @@ func NewGroupService(database *gorm.DB) *GroupService {
 	}
 }
 
+func (service *GroupService) GetGroupById(dest *models.Group, groupId int, relations ...string) error {
+	query := service.DB.Where("id = ?", groupId)
+
+	for _, relation := range relations {
+		query.Preload(relation)
+	}
+
+	return query.First(dest).Error
+}
+
 func (service *GroupService) CreateGroup(name string, owner *models.User, participantNames []string, date time.Time) (*models.Group, error) {
 	var participants []*models.User
 
@@ -182,7 +192,6 @@ func (service *GroupService) DeleteGroup(groupID uint) error {
 	return dbTransaction.Commit().Error
 }
 
-// updateUserBalances updates user balances based on the provided expense.
 func (service *GroupService) updateUserBalances(expense models.Expense) error {
 	var participantsIds []uint
 	ownerIsParticipant := false

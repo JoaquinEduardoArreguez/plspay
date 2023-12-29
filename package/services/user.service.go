@@ -53,3 +53,13 @@ func (service *UserService) Authenticate(email, password string) (int, error) {
 
 	return int(user.ID), nil
 }
+
+func (service *UserService) GetUserById(dest *models.User, userId int, relations ...string) error {
+	query := service.DB.Where("id = ?", userId)
+
+	for _, relation := range relations {
+		query.Preload(relation)
+	}
+
+	return query.First(dest).Error
+}
