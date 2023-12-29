@@ -1,18 +1,18 @@
 {{template "base" .}} {{define "title"}}Groups{{end}} {{define "body"}}
 <input type="hidden" id="csrf_token" value="{{.CsrfToken}}" />
 <h2>Groups</h2>
-{{if .GroupDtos}}
+{{if .Groups}}
 <table>
   <tr>
     <th>Name</th>
     <th>Date</th>
     <th>Created</th>
   </tr>
-  {{range .GroupDtos}}
+  {{range .Groups}}
   <tr>
     <td><a href="/groups/{{.ID}}">{{.Name}}</a></td>
-    <td>{{.Date}}</td>
-    <td>{{.CreatedAt}}</td>
+    <td>{{if .Date}} {{humanDate .Date}} {{else}} No Data {{end}}</td>
+    <td>{{humanDate .CreatedAt}}</td>
     <td><button onclick="deleteGroup({{.ID}})">⛔️</button></td>
   </tr>
   {{end}}

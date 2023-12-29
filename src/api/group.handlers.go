@@ -81,8 +81,6 @@ func (app *Application) showGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) showGroups(w http.ResponseWriter, r *http.Request) {
-	var userGroupsDtos []*models.GroupDTO
-
 	user := app.authenticatedUser(r)
 
 	if err := app.DB.Preload("Groups").First(user, user.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
@@ -93,14 +91,7 @@ func (app *Application) showGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, group := range user.Groups {
-		dto := group.ToDto()
-		userGroupsDtos = append(userGroupsDtos, &dto)
-	}
-
-	app.render(w, r, "groups.page.template.html", &templateData{
-		GroupDtos: userGroupsDtos,
-	})
+	app.render(w, r, "groups.page.template.html", &templateData{Groups: user.Groups})
 }
 
 func (app *Application) calculateTransactions(w http.ResponseWriter, r *http.Request) {

@@ -11,7 +11,7 @@ import (
 
 type templateData struct {
 	Form              *forms.Form
-	GroupDtos         []*models.GroupDTO
+	Groups            []*models.Group
 	Flash             string
 	AuthenticatedUser *models.User
 	CsrfToken         string
