@@ -78,7 +78,8 @@ func (app *Application) authenticate(next http.Handler) http.Handler {
 		}
 
 		var user models.User
-		if err := app.DB.First(&user, app.session.GetInt(r, "userID")).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+
+		if err := app.userService.GetUserById(&user, app.session.GetInt(r, "userID")); errors.Is(err, gorm.ErrRecordNotFound) {
 			app.session.Remove(r, "userID")
 			next.ServeHTTP(w, r)
 			return

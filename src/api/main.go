@@ -29,7 +29,6 @@ type Application struct {
 	groupService   *services.GroupService
 	expenseService *services.ExpenseService
 	userService    *services.UserService
-	DB             *gorm.DB
 }
 
 func main() {
@@ -66,7 +65,6 @@ func main() {
 		groupService:   services.NewGroupService(database),
 		expenseService: services.NewExpenseService(database),
 		userService:    services.NewUserService(database),
-		DB:             database,
 	}
 
 	tlsConfig := &tls.Config{
