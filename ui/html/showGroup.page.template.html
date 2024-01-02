@@ -1,77 +1,111 @@
 {{template "base" .}} {{define "title"}}{{.Group.Name}}{{end}} {{define "body"}}
 <input type="hidden" id="csrf_token" value="{{.CsrfToken}}" />
-{{with .Group}}
-<div class="group">
-  <div class="metadata">
-    <h2>{{.Name}}</h2>
-  </div>
-  {{if .Date}}
-  <pre>Event happened on <time>{{humanDate .Date}}</time></pre>
-  {{end}}
-  <pre><code>Participants: {{range .Users}}{{.Name}},{{end}}</code></pre>
-  <h2>Expenses</h2>
-  {{if .Expenses}}
-  <table>
-    <tr>
-      <th>Description</th>
-      <th>Amount</th>
-      <th>Paid By</th>
-      <th>Participants</th>
-    </tr>
-    {{range .Expenses}}
-    <tr>
-      <th>{{.Description}}</th>
-      <th>{{.Amount}}</th>
-      <th>{{.Owner.Name}}</th>
-      <th>{{range .Participants}}{{.Name}},{{end}}</th>
-      <td>
-        <button onclick="deleteExpense({{$.Group.ID}},{{.ID}})">⛔️</button>
-      </td>
-    </tr>
-    {{end}}
-  </table>
-  {{else}}
-  <p>There's nothing to see here... yet!</p>
-  {{end}}
-  <div>
-    <form action="/groups/{{.ID}}/expenses">
-      <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}" />
-      <button>New Expense</button>
-    </form>
-  </div>
 
-  <h2>Transactions</h2>
-  {{if .Transactions}}
-  <table>
-    <tr>
-      <th>Paid by</th>
-      <th>Paid to</th>
-      <th>Amount</th>
-    </tr>
-    {{range .Transactions}}
-    <tr>
-      <th>{{.Sender.Name}}</th>
-      <th>{{.Receiver.Name}}</th>
-      <th>{{.Amount}}</th>
-    </tr>
-    {{end}}
-  </table>
-  {{else}}
-  <p>No transactions calculated... yet!</p>
-  {{end}}
+<section class="section">
+  <div class="container">
+    {{with .Group}}
 
-  <div>
-    <form action="/groups/{{.ID}}/transactions" method="post">
-      <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}" />
-      <button>Calculate Transactions</button>
-    </form>
+    <div class="block">
+      <h2 class="title is-3">{{.Name}}</h2>
+      {{if .Date}}
+      <h6 class="subtitle is-6"></h6>
+      {{humanDate .Date}}
+      </h6>
+      {{end}}
+    </div>
+
+    <div class="block">
+      <h3 class="title is-4">Participants</h3>
+      <p class="subtitle is-6">{{range .Users}}{{.Name}},{{end}}</p>
+    </div>
+
+    <div class="block">
+      <h3 class="title is-4">Expenses</h3>
+
+      {{if .Expenses}}
+      <div class="table-container" style="max-height: 400px; overflow-y: auto">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Paid By</th>
+              <th>Participants</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Expenses}}
+            <tr>
+              <th>{{.Description}}</th>
+              <th>{{.Amount}}</th>
+              <th>{{.Owner.Name}}</th>
+              <th>{{range .Participants}}{{.Name}},{{end}}</th>
+              <td>
+                <div class="buttons is-right">
+                  <button class="button is-danger is-light is-rounded is-small"
+                    onclick="deleteExpense({{$.Group.ID}},{{.ID}})">
+                    ⛔️
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <p class="subtitle is-6">There's nothing to see here... yet!</p>
+      {{end}}
+
+      <form action="/groups/{{.ID}}/expenses">
+        <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}" />
+        <button class="button is-primary">Add Expense</button>
+      </form>
+    </div>
+
+    <div class="block">
+      <h3 class="title is-4">Transactions</h3>
+
+      {{if .Transactions}}
+      <div class="table-container" style="max-height: 400px; overflow-y: auto">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>Paid by</th>
+              <th>Pays to</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Transactions}}
+            <tr>
+              <th>{{.Sender.Name}}</th>
+              <th>{{.Receiver.Name}}</th>
+              <th>{{.Amount}}</th>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+
+      {{else}}
+      <p class="subtitle is-6">No transactions calculated... yet!</p>
+      {{end}}
+
+      <form action="/groups/{{.ID}}/transactions" method="post">
+        <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}" />
+        <button class="button is-primary">Calculate Transactions</button>
+      </form>
+    </div>
+
+    <p class="subtitle is-6">
+      Created {{humanDate .CreatedAt}}<br />
+      Last updated {{humanDate .UpdatedAt}}
+    </p>
+
+    {{end}}
   </div>
-  <div class="metadata">
-    <div><time>Created on {{humanDate .CreatedAt}}</time></div>
-    <div><time>Last updated on {{humanDate .UpdatedAt}}</time></div>
-  </div>
-</div>
-{{end}}
+</section>
 
 <script>
   async function deleteExpense(groupId, expenseId) {
