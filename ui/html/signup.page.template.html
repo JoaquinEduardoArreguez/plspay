@@ -1,31 +1,69 @@
 {{template "base" .}} {{define "title"}}Signup{{end}} {{define "body"}}
-<form action="/users/signup" method="post" novalidate>
-  <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
-  {{with .Form}}
-  <div>
-    <label>Name:</label>
-    {{with .Errors.Get "name"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="name" value='{{.Get "name"}}' />
+
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-one-third">
+        <div class="box">
+          <form action="/users/signup" method="POST" novalidate>
+            <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
+
+            {{with .Form}}
+            <div class="field">
+              <label class="label">Name</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  name="name"
+                  value='{{.Get "name"}}'
+                  required
+                />
+              </div>
+              {{range .Errors.Get "name"}}
+              <p class="error-message">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="email"
+                  name="email"
+                  value='{{.Get "email"}}'
+                  required
+                />
+              </div>
+              {{range .Errors.Get "email"}}
+              <p class="error-message">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label class="label">Password</label>
+              <div class="control">
+                <input class="input" type="password" name="password" required />
+              </div>
+              {{range .Errors.Get "password"}}
+              <p class="error-message">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <div class="control">
+                <button class="button is-primary is-fullwidth" type="submit">
+                  Sign Up
+                </button>
+              </div>
+            </div>
+            {{end}}
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
-  <div>
-    <label>Email:</label>
-    {{with .Errors.Get "email"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="email" value='{{.Get "email"}}' />
-  </div>
-  <div>
-    <label>Password:</label>
-    {{with .Errors.Get "password"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="password" name="password" />
-  </div>
-  <div>
-    <input type="submit" value="Signup" />
-  </div>
-  {{end}}
-</form>
+</section>
+
 {{end}}
