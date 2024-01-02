@@ -24,8 +24,7 @@ func (app *Application) createGroupForm(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
-	errorParsingForm := r.ParseForm()
-	if errorParsingForm != nil {
+	if err := r.ParseForm(); err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
@@ -47,7 +46,7 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 
 	group, errorCreatingGroup := app.groupService.CreateGroup(name, groupOwner, participantsNames, date)
 	if errorCreatingGroup != nil {
-		app.errorLog.Fatal()
+		app.serverError(w, errorCreatingGroup)
 	}
 
 	app.session.Put(r, "flash", "Group created!")
