@@ -1,43 +1,94 @@
 {{template "base" .}} {{define "title"}}Create Expense{{end}} {{define "body"}}
-<form action="/groups/{{.GroupID}}/expenses" method="post">
-  <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
-  {{with .Form}}
-  <div>
-    <label>Description:</label>
-    {{with .Errors.Get "description"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="description" value='{{.Get "description"}}' />
-  </div>
 
-  <div>
-    <label>Amount:</label>
-    {{with .Errors.Get "amount"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="amount" value='{{.Get "amount"}}' />
-  </div>
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-one-third">
+        <div class="box">
+          <h3 class="title is-4">New Expense</h3>
+          <form action="/groups/{{.GroupID}}/expenses" method="post">
+            <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
 
-  <div>
-    <label for="select-owner">Owner:</label>
-    <select name="select-owner" id="select-owner">
-      {{range $.Group.Users}}
-      <option value="{{.ID}}">{{.Name}}</option>
-      {{end}}
-    </select>
-  </div>
+            {{with .Form}}
 
-  <div>
-    <label for="select-participants">Participants:</label>
-    <select name="select-participants" id="select-owner" multiple>
-      {{range $.Group.Users}}
-      <option value="{{.ID}}">{{.Name}}</option>
-      {{end}}
-    </select>
-  </div>
+            <div class="field">
+              <label for="name" class="label">Description</label>
+              <div class="control">
+                <input
+                  type="text"
+                  id="description"
+                  class="input"
+                  name="description"
+                  value='{{.Get "description"}}'
+                />
+              </div>
+              {{with .Errors.Get "description"}}
+              <p class="help is-danger">{{.}}</p>
+              {{end}}
+            </div>
 
-  <div>
-    <input type="submit" value="Add Expense" />
+            <div class="field">
+              <label for="amount" class="label">Amount</label>
+              <div class="control">
+                <input
+                  type="text"
+                  id="amount"
+                  class="input"
+                  name="amount"
+                  value='{{.Get "amount"}}'
+                />
+              </div>
+              {{with .Errors.Get "amount"}}
+              <p class="help is-danger">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label for="select-owner" class="label">Owner</label>
+              <div class="control">
+                <div class="select">
+                  <select name="select-owner" id="select-owner">
+                    {{range $.Group.Users}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="select-participants" class="label"
+                >Participants</label
+              >
+              <div class="control">
+                <div class="select is-multiple">
+                  <select
+                    name="select-participants"
+                    id="select-owner"
+                    multiple
+                    size="{{ participantsSelectLen $.Group.Users }}"
+                  >
+                    {{range $.Group.Users}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                    {{end}}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="control">
+                <button class="button is-primary is-fullwidth" type="submit">
+                  Add Expense
+                </button>
+              </div>
+            </div>
+            {{end}}
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
-</form>
-{{end}} {{end}}
+</section>
+
+{{end}}
