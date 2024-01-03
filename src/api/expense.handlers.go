@@ -20,7 +20,6 @@ func (app *Application) createExpenseForm(w http.ResponseWriter, r *http.Request
 	}
 
 	var group models.Group
-
 	if err := app.groupService.GetGroupById(&group, groupId, "Users"); errors.Is(err, gorm.ErrRecordNotFound) {
 		app.notFound(w)
 		return
@@ -58,11 +57,22 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 	form.IsFloat64("amount")
 	form.MaxLength("select-participants", 100)
 
+	var group models.Group
+	if err := app.groupService.GetGroupById(&group, groupId, "Users"); errors.Is(err, gorm.ErrRecordNotFound) {
+		app.notFound(w)
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
 	if !form.Valid() {
 		app.render(w, r, "createExpense.page.template.html", &templateData{
 			Form:    form,
 			GroupID: groupId,
+			Group:   &group,
 		})
+		return
 	}
 
 	amount, _ := strconv.ParseFloat(form.Get("amount"), 64)
