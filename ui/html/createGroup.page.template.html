@@ -1,33 +1,75 @@
 {{template "base" .}} {{define "title"}}Create Group{{end}} {{define "body"}}
-<form action="/groups/create" method="post">
-  <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
-  {{with .Form}}
-  <div>
-    <label>Name:</label>
-    {{with .Errors.Get "name"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="name" value='{{.Get "name"}}' />
-  </div>
 
-  <div>
-    <label>Participants:</label>
-    {{with .Errors.Get "participants"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="text" name="participants" value='{{.Get "participants"}}' />
-  </div>
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-one-third">
+        <div class="box">
+          <h3 class="title is-4">New Group</h3>
+          <form action="/groups/create" method="post">
+            <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
+            {{with .Form}}
 
-  <div>
-    <label for="date">Date:</label>
-    {{with .Errors.Get "date"}}
-    <label class="error">{{.}}</label>
-    {{end}}
-    <input type="date" id="date" name="date" value='{{.Get "date"}}' />
-  </div>
+            <div class="field">
+              <label for="name" class="label">Name</label>
+              <div class="control">
+                <input
+                  type="text"
+                  id="name"
+                  class="input"
+                  name="name"
+                  value='{{.Get "name"}}'
+                />
+              </div>
+              {{with .Errors.Get "name"}}
+              <p class="help is-danger">{{.}}</p>
+              {{end}}
+            </div>
 
-  <div>
-    <input type="submit" value="Add Group" />
+            <div class="field">
+              <label for="participants" class="label">Participants</label>
+              <div class="control">
+                <input
+                  type="text"
+                  id="participants"
+                  class="input"
+                  name="participants"
+                  value='{{.Get "participants"}}'
+                />
+              </div>
+              {{with .Errors.Get "participants"}}
+              <p class="help is-danger">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label for="date" class="label">Date</label>
+              <div class="control">
+                <input
+                  type="date"
+                  id="date"
+                  class="input"
+                  name="date"
+                  value='{{.Get "date"}}'
+                />
+              </div>
+              {{with .Errors.Get "date"}}
+              <p class="help is-danger">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <div class="control">
+                <button class="button is-primary is-fullwidth" type="submit">
+                  Add Group
+                </button>
+              </div>
+            </div>
+            {{end}}
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
-</form>
-{{end}} {{end}}
+</section>
+{{end}}
