@@ -3,6 +3,8 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
@@ -57,6 +59,19 @@ func humanDate(t time.Time) string {
 	return t.UTC().Format("02 Jan 2006")
 }
 
+func participantsSelectLen(value interface{}) string {
+	val := reflect.ValueOf(value)
+	if val.Kind() == reflect.Slice {
+		lenght := len(value.([]*models.User))
+		if lenght > 4 {
+			lenght = 4
+		}
+		return strconv.Itoa(lenght)
+	}
+	return ""
+}
+
 var functions = template.FuncMap{
-	"humanDate": humanDate,
+	"humanDate":             humanDate,
+	"participantsSelectLen": participantsSelectLen,
 }
