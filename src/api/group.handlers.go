@@ -40,11 +40,11 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := form.Get("name")
-	participantsNames := strings.Split(form.Get("participants"), ",")
+	participantsEmails := strings.Split(form.Get("participants"), ",")
 	date, _ := time.Parse("2006-01-02", form.Get("date"))
 	groupOwner := app.authenticatedUser(r)
 
-	group, errorCreatingGroup := app.groupService.CreateGroup(name, groupOwner, participantsNames, date)
+	group, errorCreatingGroup := app.groupService.CreateGroup(name, groupOwner, participantsEmails, date)
 	if errorCreatingGroup != nil {
 		app.serverError(w, errorCreatingGroup)
 	}
