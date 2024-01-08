@@ -38,10 +38,10 @@ func (service *GroupService) GetGroupById(dest *models.Group, groupId int, relat
 	return query.First(dest).Error
 }
 
-func (service *GroupService) CreateGroup(name string, owner *models.User, participantNames []string, date time.Time) (*models.Group, error) {
+func (service *GroupService) CreateGroup(name string, owner *models.User, participantsEmails []string, date time.Time) (*models.Group, error) {
 	var participants []*models.User
 
-	if err := service.DB.Where("name IN ?", participantNames).Find(&participants).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := service.DB.Where("email IN ?", participantsEmails).Find(&participants).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	} else if err != nil {
 		return nil, err
@@ -62,7 +62,6 @@ func (service *GroupService) CreateGroup(name string, owner *models.User, partic
 func (service *GroupService) CreateTransactions(groupId uint) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 
-	//Get group by ID
 	var group models.Group
 	if err := service.DB.Preload("Users").Preload("Expenses").Preload("Expenses.Participants").First(&group, groupId).Error; err != nil {
 		return nil, err
@@ -79,13 +78,11 @@ func (service *GroupService) CreateTransactions(groupId uint) ([]*models.Transac
 
 	dbTransaction := service.DB.Begin()
 
-	// Delete prev transactions, if applicable
 	if err := dbTransaction.Where("\"group\" = ?", groupId).Delete(&models.Transaction{}).Error; err != nil {
 		dbTransaction.Rollback()
 		return nil, err
 	}
 
-	// Delete prev balances, if applicable
 	if err := dbTransaction.Where("\"group\" = ?", groupId).Delete(&models.Balance{}).Error; err != nil {
 		dbTransaction.Rollback()
 		return nil, err
@@ -130,7 +127,6 @@ func (service *GroupService) generateTransactions(remainingBalances []*models.Ba
 		var sender, receiver *models.Balance
 		var minBalance, maxBalance float64
 
-		// Find sender and receiver
 		for _, remainingBalance := range remainingBalances {
 			if remainingBalance.Amount < minBalance {
 				sender = remainingBalance
@@ -139,10 +135,8 @@ func (service *GroupService) generateTransactions(remainingBalances []*models.Ba
 			}
 		}
 
-		// Calculate transaction amount
 		var transactionAmount float64 = math.Min(math.Abs(sender.Amount), math.Abs(receiver.Amount))
 
-		// Add transaction
 		transactions = append(transactions, &models.Transaction{
 			Amount:         transactionAmount,
 			SenderUserID:   sender.User,
@@ -150,11 +144,9 @@ func (service *GroupService) generateTransactions(remainingBalances []*models.Ba
 			Group:          remainingBalances[0].Group,
 		})
 
-		// Update user balances
 		sender.Amount = math.Copysign(utils.RoundFloat(math.Abs(sender.Amount)-transactionAmount, 2), sender.Amount)
 		receiver.Amount = math.Copysign(utils.RoundFloat(math.Abs(receiver.Amount)-transactionAmount, 2), receiver.Amount)
 
-		// Calculate next transaction
 		return service.generateTransactions(remainingBalances, transactions)
 	}
 
