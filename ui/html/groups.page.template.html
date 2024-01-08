@@ -85,32 +85,3 @@
 </script>
 
 {{end}}
-
-<!--
-<h2>Groups</h2>
-{{if .Groups}}
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Date</th>
-    <th>Created</th>
-  </tr>
-  {{range .Groups}}
-  <tr>
-    <td><a href="/groups/{{.ID}}">{{.Name}}</a></td>
-    <td>{{if .Date}} {{humanDate .Date}} {{else}} No Data {{end}}</td>
-    <td>{{humanDate .CreatedAt}}</td>
-    <td><button onclick="deleteGroup({{.ID}})">⛔️</button></td>
-  </tr>
-  {{end}}
-</table>
-{{else}}
-<p>There's nothing to see here... yet!</p>
-{{end}}
-<div>
-  <form action="/groups/create">
-    <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
-    <button>New Group</button>
-  </form>
-</div>
--->
