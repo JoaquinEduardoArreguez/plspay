@@ -6,7 +6,7 @@
       <div class="column is-one-third">
         <div class="box">
           <h3 class="title is-4">New Group</h3>
-          <form action="/groups/create" method="post">
+          <form action="/groups/create" method="post" id="AddGroupForm">
             <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
             {{with .Form}}
 
@@ -26,17 +26,42 @@
               {{end}}
             </div>
 
+            <input
+              type="hidden"
+              id="participants"
+              name="participants"
+              value=""
+            />
+
             <div class="field">
-              <label for="participants" class="label">Participants</label>
+              <label for="participants-text-input" class="label"
+                >Participants</label
+              >
+
               <div class="control">
-                <input
-                  type="text"
-                  id="participants"
+                <div
                   class="input"
-                  name="participants"
-                  value='{{.Get "participants"}}'
-                />
+                  contenteditable="true"
+                  id="participants-text-input"
+                  name="participants-text-input"
+                  oninput="handleParticipantsInput(this.textContent || this.innerText)"
+                ></div>
+
+                <div class="dropdown" id="suggestions-dropdown">
+                  <div class="dropdown-menu">
+                    <div
+                      class="dropdown-content"
+                      id="suggestions-container"
+                    ></div>
+                  </div>
+                </div>
               </div>
+
+              <div
+                class="field is-grouped is-grouped-multiline"
+                id="participants-container"
+              ></div>
+
               {{with .Errors.Get "participants"}}
               <p class="help is-danger">{{.}}</p>
               {{end}}
@@ -72,4 +97,109 @@
     </div>
   </div>
 </section>
+
+<script>
+  let typingTimer;
+  const doneTypingInterval = 200;
+
+  let suggestions = [];
+  let selectedParticipants = [];
+
+  function handleParticipantsInput(input) {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => getSuggestions(input), doneTypingInterval);
+  }
+
+  function getSuggestions(input) {
+    const suggestionsDropdown = document.getElementById("suggestions-dropdown");
+    suggestionsDropdown.classList.remove("is-active");
+
+    const suggestionsContainer = document.getElementById(
+      "suggestions-container"
+    );
+
+    suggestionsContainer.innerHTML = "";
+
+    if (!input) {
+      return;
+    }
+
+    fetch("/users/suggest?partialEmail=" + encodeURIComponent(input))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        suggestions = Object.entries(data).filter(
+          ([email, name]) => !selectedParticipants.includes(email)
+        );
+
+        if (suggestions.length > 0) {
+          suggestionsDropdown.classList.add("is-active");
+        }
+
+        suggestions.forEach(([email, username]) => {
+          const suggestionElement = document.createElement("a");
+          suggestionElement.classList.add("dropdown-item");
+          suggestionElement.textContent = email;
+          suggestionElement.addEventListener("click", () =>
+            addParticipant(email)
+          );
+          suggestionsContainer.appendChild(suggestionElement);
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching suggestions:", error);
+      });
+  }
+
+  function addParticipant(email) {
+    const toastContainer = document.getElementById("participants-container");
+
+    const participantToastContainer = document.createElement("div");
+    participantToastContainer.classList.add("control");
+
+    const participantToast = document.createElement("div");
+    participantToast.classList.add("tags", "has-addons");
+
+    const participantEmail = document.createElement("a");
+    participantEmail.classList.add("tag", "is-dark");
+    participantEmail.textContent = email;
+
+    const removeParticipantButton = document.createElement("a");
+    removeParticipantButton.classList.add("tag", "is-delete");
+    removeParticipantButton.addEventListener("click", () =>
+      removeParticipant(email, participantToastContainer)
+    );
+
+    toastContainer.appendChild(participantToastContainer);
+    participantToastContainer.appendChild(participantToast);
+    participantToast.appendChild(participantEmail);
+    participantToast.appendChild(removeParticipantButton);
+
+    selectedParticipants.push(email);
+
+    participantsInput = document.getElementById("participants");
+    participantsInput.value = selectedParticipants.join(",");
+
+    participantsTextInput = document.getElementById("participants-text-input");
+
+    participantsTextInput.textContent = "";
+    participantsTextInput.innerText = "";
+
+    getSuggestions("");
+  }
+
+  function removeParticipant(email, toastElement) {
+    const toastContainer = document.getElementById("participants-container");
+    toastContainer.removeChild(toastElement);
+
+    selectedOptions = selectedOptions.filter((option) => option !== email);
+
+    getSuggestions("");
+  }
+</script>
+
 {{end}}
