@@ -63,3 +63,17 @@ func (service *UserService) GetUserById(dest *models.User, userId int, relations
 
 	return query.First(dest).Error
 }
+
+func (service *UserService) GetUserSuggestionsByEmail(input string) (map[string]string, error) {
+	var matchingUsers []models.User
+	if err := service.DB.Where("email LIKE ?", "%"+input+"%").Find(&matchingUsers).Error; err != nil {
+		return nil, err
+	}
+
+	suggestions := make(map[string]string, len(matchingUsers))
+	for _, matchingUser := range matchingUsers {
+		suggestions[matchingUser.Email] = matchingUser.Name
+	}
+
+	return suggestions, nil
+}
