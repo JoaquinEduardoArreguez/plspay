@@ -34,6 +34,7 @@ func (app *Application) routes() http.Handler {
 	serverMux.Get("/users/login", dynamicMiddleware.ThenFunc(app.loginUserForm))
 	serverMux.Post("/users/login", dynamicMiddleware.ThenFunc(app.loginUser))
 	serverMux.Post("/users/logout", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.logoutUser))
+	serverMux.Get("/users/suggest", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.getUserSuggestionsByEmail))
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	serverMux.Get("/static/", http.StripPrefix("/static", fileServer))
