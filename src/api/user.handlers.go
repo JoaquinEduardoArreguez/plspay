@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -81,4 +82,37 @@ func (app *Application) logoutUser(w http.ResponseWriter, r *http.Request) {
 	app.session.Remove(r, "userID")
 	app.session.Put(r, "flash", "You've been logged out successfully!")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *Application) getUserSuggestionsByEmail(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.Form)
+	form.Required("partialEmail")
+	form.MaxLength("partialEmail", 20)
+
+	if !form.Valid() {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	suggestions, getSuggestionsError := app.userService.GetUserSuggestionsByEmail(form.Get("partialEmail"))
+	if getSuggestionsError != nil {
+		app.serverError(w, getSuggestionsError)
+		return
+	}
+
+	response, err := json.Marshal(suggestions)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	w.Write(response)
 }
