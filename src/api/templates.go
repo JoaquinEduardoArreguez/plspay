@@ -3,7 +3,6 @@ package main
 import (
 	"html/template"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -59,16 +58,12 @@ func humanDate(t time.Time) string {
 	return t.UTC().Format("02 Jan 2006")
 }
 
-func participantsSelectLen(value interface{}) string {
-	val := reflect.ValueOf(value)
-	if val.Kind() == reflect.Slice {
-		lenght := len(value.([]*models.User))
-		if lenght > 4 {
-			lenght = 4
-		}
-		return strconv.Itoa(lenght)
+func participantsSelectLen(participants []*models.User) string {
+	lenght := len(participants)
+	if lenght > 4 {
+		lenght = 4
 	}
-	return ""
+	return strconv.Itoa(lenght)
 }
 
 var functions = template.FuncMap{
