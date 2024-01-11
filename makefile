@@ -21,3 +21,6 @@ debug-build:
 debug: debug-build
 	clear
 	./builds/${BINARY_NAME}.debug.out -postgresDsn=${POSTGRES_DSN}
+
+test:
+	go test ./...
