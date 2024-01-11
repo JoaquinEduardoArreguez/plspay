@@ -17,6 +17,9 @@ func (app *Application) routes() http.Handler {
 	// Home
 	serverMux.Get("/", dynamicMiddleware.ThenFunc(app.home))
 
+	// Ping
+	serverMux.Get("/ping", http.HandlerFunc(ping))
+
 	// Groups
 	serverMux.Get("/groups/create", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.createGroupForm))
 	serverMux.Post("/groups/create", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.createGroup))
