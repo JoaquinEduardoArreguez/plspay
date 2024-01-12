@@ -16,3 +16,21 @@ services:
       - '-c'
       - 'wal_level=logical'
     restart: always
+    
+  postgresTest:
+    image: postgres:latest
+    expose:
+      - 5433
+    ports:
+      - 5433:5432
+    volumes:
+      - ./src/scripts/sql:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=adminTest
+      - POSTGRES_USER=postgresTest
+      - POSTGRES_DB=plspayTest
+    command:
+      - 'postgres'
+      - '-c'
+      - 'wal_level=logical'
+    restart: always
