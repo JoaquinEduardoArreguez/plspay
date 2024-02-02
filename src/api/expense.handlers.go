@@ -53,7 +53,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 	form.Required("description", "amount", "select-participants", "select-owner")
 	form.MaxLength("description", 20)
 	form.IsDatabaseID("select-owner")
-	form.MaxLength("amount", 5)
+	form.MaxLength("amount", 20)
 	form.IsFloat64("amount")
 	form.MaxLength("select-participants", 100)
 
