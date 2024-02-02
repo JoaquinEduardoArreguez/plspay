@@ -5,12 +5,17 @@ build:
 	go build -o ./builds/${BINARY_NAME}.out ./src/api/*
 
 run: build
-	echo "\n\n\n\n\n"
-	clear
 	./builds/${BINARY_NAME}.out -postgresDsn=${POSTGRES_DSN}
 
 run-docker:
 	docker-compose -f docker.compose.yml up -d
+
+run-prod:
+	git pull
+	sleep 2
+	make run-docker
+	sleep 2
+	nohup make run &
 
 stop-docker:
 	docker-compose -f docker.compose.yml down
