@@ -26,7 +26,7 @@ func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 	form := forms.New(r.PostForm)
 	form.Required("name", "email", "password")
 	form.MatchesPattern("email", forms.EmailRx)
-	form.MinLength("password", 10)
+	form.MinLength("password", 8)
 
 	if !form.Valid() {
 		app.render(w, r, "signup.page.template.html", &templateData{Form: form})

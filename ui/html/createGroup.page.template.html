@@ -34,9 +34,7 @@
             />
 
             <div class="field">
-              <label for="participants-text-input" class="label"
-                >Participants</label
-              >
+              <label class="label">Participants</label>
 
               <div class="control">
                 <div
@@ -135,18 +133,14 @@
         suggestions = Object.entries(data).filter(
           ([email, name]) => !selectedParticipants.includes(email)
         );
-
-        if (suggestions.length > 0) {
-          suggestionsDropdown.classList.add("is-active");
-        }
+        suggestionsDropdown.classList.add("is-active");
+        suggestions.push([input.trim()+"@guest.com",input.trim()])
 
         suggestions.forEach(([email, username]) => {
           const suggestionElement = document.createElement("a");
           suggestionElement.classList.add("dropdown-item");
-          suggestionElement.textContent = email;
-          suggestionElement.addEventListener("click", () =>
-            addParticipant(email)
-          );
+          suggestionElement.textContent = email.endsWith("@guest.com") ? username+" (Add as guest)" : email;
+          suggestionElement.addEventListener("click", () =>addParticipant(email));
           suggestionsContainer.appendChild(suggestionElement);
         });
       })
@@ -195,9 +189,6 @@
   function removeParticipant(email, toastElement) {
     const toastContainer = document.getElementById("participants-container");
     toastContainer.removeChild(toastElement);
-
-    selectedOptions = selectedOptions.filter((option) => option !== email);
-
     getSuggestions("");
   }
 </script>
