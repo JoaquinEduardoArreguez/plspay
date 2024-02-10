@@ -10,6 +10,7 @@ import (
 
 	"github.com/JoaquinEduardoArreguez/plspay/package/forms"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -40,11 +41,29 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := form.Get("name")
-	participantsEmails := strings.Split(form.Get("participants"), ",")
 	date, _ := time.Parse("2006-01-02", form.Get("date"))
 	groupOwner := app.authenticatedUser(r)
+	participantsEmails := strings.Split(form.Get("participants"), ",")
+	var registeredParticipantsEmails []string
+	var guestUsers []*models.User
 
-	group, errorCreatingGroup := app.groupService.CreateGroup(name, groupOwner, participantsEmails, date)
+	groupUuid := uuid.New()
+
+	for _, participantEmail := range participantsEmails {
+		if strings.HasSuffix(participantEmail, "@guest.com") {
+			var guestName string
+			arrobaIndex := strings.Index(participantEmail, "@")
+			if arrobaIndex != -1 {
+				guestName = participantEmail[:arrobaIndex]
+			}
+
+			guestUsers = append(guestUsers, &models.User{Name: guestName, Email: groupUuid.String() + participantEmail, IsGuest: true})
+		} else {
+			registeredParticipantsEmails = append(registeredParticipantsEmails, participantEmail)
+		}
+	}
+
+	group, errorCreatingGroup := app.groupService.CreateGroup(groupUuid, name, groupOwner, registeredParticipantsEmails, date, guestUsers)
 	if errorCreatingGroup != nil {
 		app.serverError(w, errorCreatingGroup)
 	}

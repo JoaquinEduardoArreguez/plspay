@@ -7,6 +7,7 @@ import (
 
 	utils "github.com/JoaquinEduardoArreguez/plspay/package"
 	"github.com/JoaquinEduardoArreguez/plspay/package/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -38,7 +39,7 @@ func (service *GroupService) GetGroupById(dest *models.Group, groupId int, relat
 	return query.First(dest).Error
 }
 
-func (service *GroupService) CreateGroup(name string, owner *models.User, participantsEmails []string, date time.Time) (*models.Group, error) {
+func (service *GroupService) CreateGroup(uuid uuid.UUID, name string, owner *models.User, participantsEmails []string, date time.Time, guestParticipants []*models.User) (*models.Group, error) {
 	var participants []*models.User
 
 	if err := service.DB.Where("email IN ?", participantsEmails).Find(&participants).Error; errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,7 +48,7 @@ func (service *GroupService) CreateGroup(name string, owner *models.User, partic
 		return nil, err
 	}
 
-	group, newGroupError := models.NewGroup(name, owner, participants, date)
+	group, newGroupError := models.NewGroup(uuid, name, owner, append(participants, guestParticipants...), date)
 	if newGroupError != nil {
 		return nil, newGroupError
 	}

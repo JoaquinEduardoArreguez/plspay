@@ -27,7 +27,7 @@ func (service *UserService) CreateUser(name, email, password string) (*models.Us
 		return nil, hashedPasswordError
 	}
 
-	user := &models.User{Name: name, Email: email, Hashed_passwod: string(hashedPassword)}
+	user := &models.User{Name: name, Email: email, Hashed_passwod: string(hashedPassword), IsGuest: false}
 
 	if err := service.DB.Create(user).Error; err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (service *UserService) GetUserById(dest *models.User, userId int, relations
 
 func (service *UserService) GetUserSuggestionsByEmail(input string) (map[string]string, error) {
 	var matchingUsers []models.User
-	if err := service.DB.Where("email LIKE ?", "%"+input+"%").Find(&matchingUsers).Error; err != nil {
+	if err := service.DB.Where("email LIKE ? AND is_guest = ?", "%"+input+"%", false).Find(&matchingUsers).Error; err != nil {
 		return nil, err
 	}
 
