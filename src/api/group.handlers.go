@@ -32,8 +32,8 @@ func (app *Application) createGroup(w http.ResponseWriter, r *http.Request) {
 
 	form := forms.New(r.PostForm)
 	form.Required("name", "participants")
-	form.MaxLength("name", 20)
-	form.MaxLength("participants", 100)
+	form.MaxLength("name", 40)
+	form.MaxLength("participants", 500)
 
 	if !form.Valid() {
 		app.render(w, r, "createGroup.page.template.html", &templateData{Form: form})
