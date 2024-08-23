@@ -35,7 +35,7 @@ func (service *ExpenseService) CreateExpense(description string, amount float64,
 	return expense, nil
 }
 
-func (service *ExpenseService) DeleteExpense(groupID, expenseID int) error {
+func (service *ExpenseService) DeleteExpense(groupID, expenseID uint) error {
 	dbTransaction := service.DB.Begin()
 
 	if err := dbTransaction.Where("\"group\" = ?", groupID).Delete(&models.Transaction{}).Error; err != nil {
@@ -47,4 +47,19 @@ func (service *ExpenseService) DeleteExpense(groupID, expenseID int) error {
 	}
 
 	return dbTransaction.Commit().Error
+}
+
+func (service *ExpenseService) GetExpenseById(dest *models.Expense, expenseID int, relations ...string) error {
+	query := service.DB.Where("id = ?", expenseID)
+
+	for _, relation := range relations {
+		query.Preload(relation)
+	}
+
+	return query.First(dest).Error
+}
+
+func (service *ExpenseService) UpdateExpense(expenseID uint, description string, amount float64, groupID uint, ownerID uint, participantsIDs []uint) (*models.Expense, error) {
+	service.DeleteExpense(groupID, expenseID)
+	return service.CreateExpense(description, amount, groupID, ownerID, participantsIDs)
 }
