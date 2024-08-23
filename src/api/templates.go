@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"path/filepath"
 	"strconv"
@@ -18,6 +19,7 @@ type templateData struct {
 	CsrfToken         string
 	Group             *models.Group
 	GroupID           int
+	Expense           *models.Expense
 }
 
 func newTemplateCache(dir string) (map[string]*template.Template, error) {
@@ -66,7 +68,19 @@ func participantsSelectLen(participants []*models.User) string {
 	return strconv.Itoa(lenght)
 }
 
+func isSelectedParticipantInExpense(id uint, participants []*models.User) bool {
+	for _, user := range participants {
+		fmt.Println(user.Name)
+		if id ==user.ID{
+			fmt.Println(fmt.Sprintf("User %s is a participant",user.Name))
+			return true
+		}
+	}
+	return false
+}
+
 var functions = template.FuncMap{
-	"humanDate":             humanDate,
-	"participantsSelectLen": participantsSelectLen,
+	"humanDate":                   humanDate,
+	"participantsSelectLen":       participantsSelectLen,
+	"isSelectedParticipantInExpense": isSelectedParticipantInExpense,
 }
