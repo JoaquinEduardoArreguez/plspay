@@ -1,0 +1,94 @@
+{{template "base" .}} {{define "title"}}Update Expense{{end}} {{define "body"}}
+
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-one-third">
+        <div class="box">
+          <h3 class="title is-4">Expense</h3>
+          <form action="/groups/{{.GroupID}}/expenses/{{$.Expense.ID}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{.CsrfToken}}" />
+
+            {{with .Form}}
+
+            <div class="field">
+              <label for="name" class="label">Description</label>
+              <div class="control">
+                <input
+                  type="text"
+                  id="description"
+                  class="input"
+                  name="description"
+                  value='{{.Get "description"}}'
+                />
+              </div>
+              {{with .Errors.Get "description"}}
+              <p class="help is-danger">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label for="amount" class="label">Amount</label>
+              <div class="control">
+                <input
+                  type="text"
+                  id="amount"
+                  class="input"
+                  name="amount"
+                  value='{{.Get "amount"}}'
+                />
+              </div>
+              {{with .Errors.Get "amount"}}
+              <p class="help is-danger">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label for="select-owner" class="label">Owner</label>
+              <div class="control">
+                <div class="select">
+                  <select name="select-owner" id="select-owner">
+                    {{range $.Group.Users}}
+                    <option value="{{.ID}}" {{if eq .ID $.Expense.OwnerID}}selected{{end}} >{{.Name}}</option>
+                    {{end}}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="select-participants" class="label"
+                >Participants</label
+              >
+              <div class="control">
+                <div class="select is-multiple">
+                  <select
+                    name="select-participants"
+                    id="select-owner"
+                    multiple
+                    size="{{ participantsSelectLen $.Group.Users }}"
+                  >
+                    {{range $.Group.Users}}
+                    <option value="{{.ID}}" {{if isSelectedParticipantInExpense .ID ($.Expense.Participants)}}selected{{end}}>{{.Name}}</option>
+                    {{end}}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="control">
+                <button class="button is-primary is-fullwidth" type="submit">
+                  update
+                </button>
+              </div>
+            </div>
+            {{end}}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{{end}}
