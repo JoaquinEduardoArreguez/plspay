@@ -43,10 +43,8 @@
               <th>{{range .Participants}}{{.Name}},{{end}}</th>
               <td>
                 <div class="buttons is-right">
-                  <button class="button is-danger is-light is-rounded is-small"
-                    onclick="deleteExpense({{$.Group.ID}},{{.ID}})">
-                    ⛔️
-                  </button>
+                  <button class="button is-danger is-light is-rounded is-small" onclick="deleteExpense({{$.Group.ID}},{{.ID}})">⛔️</button>
+                  <a href="/expenses/{{.ID}}" class="button is-info is-light is-rounded">⚙️</a>
                 </div>
               </td>
             </tr>
